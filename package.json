@@ -16,6 +16,9 @@
     "request": "^2.88.2"
   },
   "scripts": {
-    "start": "node app.js"
+    "start": "nodemon app.js"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
   }
 }

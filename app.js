@@ -105,7 +105,7 @@ if (
       email: { S: email },
       phone: { S: phone },
     };
-    return;
+
     const newUser = await registerUser(email, password, phone);
 
     console.log(newUser);
