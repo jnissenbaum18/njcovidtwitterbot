@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>NJ COVID Twitter Bot!</title>
+
+    <!-- Bootstrap core CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+      integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+      crossorigin="anonymous"
+    />
+
+    <!-- Custom styles for this template -->
+    <!-- <link href="<%= static_path + "/bootstrap/css/jumbotron-narrow.css" %>" rel="stylesheet"> -->
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <ul class="nav nav-pills pull-right">
+          <li class="active"><a href="#">Home</a></li>
+          <li><a href="#">Register</a></li>
+          <li><a data-toggle="modal" href="#loginModal">Login</a></li>
+          <li>
+            <a id="account" data-toggle="modal" href="#accountModal">Account</a>
+          </li>
+        </ul>
+        <h3 class="text-muted">A New Startup</h3>
+      </div>
+      <% if (flask_debug === 'true') { %>
+      <div class="alert alert-danger">
+        Flask is in debug mode. This is not safe for production.
+      </div>
+      <% } %>
+      <div id="signupSuccess" class="alert alert-success" style="display: none">
+        <p id="signupSuccessText">
+          Thanks for signing up! You'll be among the first to know when we
+          launch.
+        </p>
+      </div>
+      <div
+        id="signupDuplicate"
+        class="alert alert-success"
+        style="display: none"
+      >
+        <p id="signupDuplicateText">
+          Fear not, you're already on the list! You'll be among the first to
+          know when we launch.
+        </p>
+      </div>
+      <div id="signupError" class="alert alert-info" style="display: none">
+        <p id="signupErrorText">
+          Well this is embarrassing. It looks like we're having trouble getting
+          you on the list.
+        </p>
+      </div>
+      <div class="jumbotron">
+        <h1>The next big thing is coming...</h1>
+        <p class="lead">
+          We're pretty thrilled to unveil our latest creation. Sign up below to
+          be notified when we officially launch!
+        </p>
+        <p>
+          <a
+            class="btn btn-lg btn-success"
+            data-toggle="modal"
+            href="#signupModal"
+            >Sign up today</a
+          >
+        </p>
+      </div>
+
+      <div class="footer">
+        <p>&copy; NJ COVID Twitter Bot</p>
+      </div>
+
+      <!-- Modal -->
+      <div
+        class="modal fade"
+        id="signupModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="signupModal"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-hidden="true"
+              >
+                &times;
+              </button>
+              <h4 class="modal-title">
+                Register here to be notified about COVID updates.
+              </h4>
+            </div>
+            <div class="modal-body">
+              <form id="signupForm" role="form">
+                <input
+                  type="hidden"
+                  id="theme"
+                  name="theme"
+                  value="<%= theme %>"
+                />
+                <div class="form-group">
+                  <label for="email">Email address</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="signup-email"
+                    name="email"
+                    placeholder="Your email address"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="phone">Mobile phone</label>
+                  <input
+                    type="phone"
+                    class="form-control"
+                    id="signup-phone"
+                    name="phone"
+                    placeholder="Your phone number"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="signup-password"
+                    name="password"
+                    placeholder="Your password"
+                  />
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button id="signup" type="button" class="btn btn-primary">
+                Sign Up!
+              </button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+      <!-- /.modal -->
+
+      <div
+        class="modal fade"
+        id="accountModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="accountModal"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-hidden="true"
+              >
+                &times;
+              </button>
+              <h4 class="modal-title">
+                Register here to be notified about COVID updates.
+              </h4>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer"></div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+      <div
+        class="modal fade"
+        id="loginModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="loginModal"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-hidden="true"
+              >
+                &times;
+              </button>
+              <h4 class="modal-title">Login to your account.</h4>
+            </div>
+            <div class="modal-body">
+              <div
+                id="loginError"
+                class="alert alert-info"
+                style="display: none"
+              >
+                <p id="loginErrorText">
+                  We could not log you in to your account
+                </p>
+              </div>
+              <form id="loginForm" role="form">
+                <div class="form-group">
+                  <label for="email">Email address</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="login-email"
+                    name="email"
+                    placeholder="Your email address"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="login-password"
+                    name="password"
+                    placeholder="Your password"
+                  />
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button id="login" type="button" class="btn btn-primary">
+                Login
+              </button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+    </div>
+    <!-- /container -->
+
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.min.js"
+      integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+      integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+      crossorigin="anonymous"
+    ></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $("#signup").click(function () {
+          $.post("/signup", $("#signupForm").serialize(), function (data) {
+            $("#signupSuccess").show();
+          })
+            .error(function (xhr) {
+              switch (xhr.status) {
+                case 409:
+                  $("#signupDuplicate").show();
+                  break;
+                default:
+                  $("#signupError").show();
+              }
+            })
+            .always(function () {
+              $("#signupModal").modal("hide");
+            });
+        });
+        $("#login").click(function () {
+          $.post("/login", $("#loginForm").serialize(), function (data) {
+            console.log("account data: ", data);
+            $("#loginModal").hide();
+          }).error(function (xhr) {
+            switch (xhr.status) {
+              case 401:
+                break;
+                $("#loginError").show();
+              default:
+                $("#loginError").show();
+            }
+          });
+        }),
+          "json";
+        $("#account").click(function () {
+          console.log("get acct");
+          $.post(
+            "/account",
+            {
+              email: "njcovidtwitterbot@gmail.com",
+            },
+            function (data) {
+              console.log("account data: ", data);
+              $("#accountModal").show();
+            }
+          ).error(function (xhr) {
+            switch (xhr.status) {
+              case 409:
+                break;
+              default:
+                $("#accountError").show();
+            }
+          });
+        }),
+          "json";
+      });
+    </script>
+  </body>
+</html>
