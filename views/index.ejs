@@ -188,12 +188,47 @@
               >
                 &times;
               </button>
-              <h4 class="modal-title">
-                Register here to be notified about COVID updates.
-              </h4>
+              <h4 class="modal-title">Update your account data here</h4>
             </div>
-            <div class="modal-body"></div>
-            <div class="modal-footer"></div>
+            <div class="modal-body">
+              <form id="accountForm" role="form">
+                <input type="hidden" id="account-idToken" name="idToken" />
+                <div class="form-group">
+                  <label for="email">Email address</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="account-email"
+                    name="email"
+                    placeholder="Your email address"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="password">Phone Number</label>
+                  <input
+                    type="phone"
+                    class="form-control"
+                    id="account-phone"
+                    name="phone"
+                    placeholder="Your phone number"
+                  />
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <div
+                id="accountUpdateSuccess"
+                class="alert alert-info"
+                style="display: none"
+              >
+                <p id="accountUpdateSuccessText">
+                  Account data successfully updated
+                </p>
+              </div>
+              <button id="account-update" type="button" class="btn btn-primary">
+                Update
+              </button>
+            </div>
           </div>
           <!-- /.modal-content -->
         </div>
@@ -279,6 +314,7 @@
         var region = null;
         var identityPoolId = null;
  */
+        var idToken = null;
         var accessToken = null;
         var refreshToken = null;
 
@@ -300,10 +336,11 @@
             identityPoolId = data.identityPoolId;
           }); */
 
+          idToken = Cookies.get("idToken");
           accessToken = Cookies.get("accessToken");
           refreshToken = Cookies.get("refreshToken");
 
-          if (!accessToken || !refreshToken) {
+          if (!idToken || !accessToken || !refreshToken) {
             $("#loginModal").modal("show");
           }
         }
@@ -335,9 +372,10 @@
         $("#login").click(function () {
           $.post("/login", $("#loginForm").serialize(), function (data) {
             console.log("account data: ", data);
-            if (data.accessToken && data.refreshToken) {
+            if (data.idToken && data.accessToken && data.refreshToken) {
               Cookies.set("accessToken", data.accessToken);
               Cookies.set("refreshToken", data.refreshToken);
+              Cookies.set("idToken", data.idToken);
               $("#loginModal").modal("hide");
             }
           }).error(function (xhr) {
@@ -351,20 +389,43 @@
           });
         }),
           "json";
+
+        $("#account-update").click(function () {
+          $("#account-idToken").val(Cookies.get("idToken"));
+          $.post(
+            "/account-update",
+            $("#accountForm").serialize(),
+            function (data) {
+              if (data && data.success) {
+                $("#accountUpdateSuccess").show();
+              }
+            }
+          );
+        });
+
         $("#account").click(function () {
           console.log("get acct");
-          if (!accessToken) {
+          var acctIdToken = Cookies.get("idToken");
+          if (!acctIdToken) {
             console.error("User is not authenticated");
             return;
           }
           $.post(
             "/account",
             {
-              accessToken,
+              idToken: acctIdToken,
             },
             function (data) {
               console.log("account data: ", data);
-              $("#accountModal").show();
+              if (data) {
+                if (data.email) {
+                  $("#account-email").val(data.email);
+                }
+                if (data.phone) {
+                  $("#account-phone").val(data.phone);
+                }
+                $("#accountModal").show();
+              }
             }
           ).error(function (xhr) {
             switch (xhr.status) {
