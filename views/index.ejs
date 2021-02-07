@@ -16,6 +16,19 @@
       crossorigin="anonymous"
     />
 
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.min.js"
+      integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+      integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+      crossorigin="anonymous"
+    ></script>
+
     <!-- Custom styles for this template -->
     <!-- <link href="<%= static_path + "/bootstrap/css/jumbotron-narrow.css" %>" rel="stylesheet"> -->
   </head>
@@ -206,7 +219,9 @@
               >
                 &times;
               </button>
-              <h4 class="modal-title">Login to your account.</h4>
+              <h4 class="modal-title">
+                Please login to your account. Or register for a new account.
+              </h4>
             </div>
             <div class="modal-body">
               <div
@@ -245,6 +260,9 @@
               <button id="login" type="button" class="btn btn-primary">
                 Login
               </button>
+              <button id="loginToSignup" type="button" class="btn btn-info">
+                Signup
+              </button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -254,18 +272,49 @@
     </div>
     <!-- /container -->
 
-    <script
-      src="https://code.jquery.com/jquery-1.12.4.min.js"
-      integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
-      integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
-      crossorigin="anonymous"
-    ></script>
     <script type="text/javascript">
       $(document).ready(function () {
+        /* var userPoolId = null;
+        var clientId = null;
+        var region = null;
+        var identityPoolId = null;
+ */
+        var accessToken = null;
+        var refreshToken = null;
+
+        function initApp() {
+          /* $.get("/config", {}, function (data) {
+            console.log("AWS credentials: ", data);
+            if (
+              !data.userPoolId ||
+              !data.clientId ||
+              !data.region ||
+              !data.identityPoolId
+            ) {
+              console.error("Could not fetch AWS configuration");
+              return;
+            }
+            userPoolId = data.userPoolId;
+            clientId = data.clientId;
+            region = data.region;
+            identityPoolId = data.identityPoolId;
+          }); */
+
+          accessToken = Cookies.get("accessToken");
+          refreshToken = Cookies.get("refreshToken");
+
+          if (!accessToken || !refreshToken) {
+            $("#loginModal").modal("show");
+          }
+        }
+
+        initApp();
+
+        $("#loginToSignup").click(function () {
+          $("#loginModal").modal("hide");
+          $("#signupModal").modal("show");
+        });
+
         $("#signup").click(function () {
           $.post("/signup", $("#signupForm").serialize(), function (data) {
             $("#signupSuccess").show();
@@ -286,7 +335,11 @@
         $("#login").click(function () {
           $.post("/login", $("#loginForm").serialize(), function (data) {
             console.log("account data: ", data);
-            $("#loginModal").hide();
+            if (data.accessToken && data.refreshToken) {
+              Cookies.set("accessToken", data.accessToken);
+              Cookies.set("refreshToken", data.refreshToken);
+              $("#loginModal").modal("hide");
+            }
           }).error(function (xhr) {
             switch (xhr.status) {
               case 401:
@@ -300,10 +353,14 @@
           "json";
         $("#account").click(function () {
           console.log("get acct");
+          if (!accessToken) {
+            console.error("User is not authenticated");
+            return;
+          }
           $.post(
             "/account",
             {
-              email: "njcovidtwitterbot@gmail.com",
+              accessToken,
             },
             function (data) {
               console.log("account data: ", data);

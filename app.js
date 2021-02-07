@@ -60,6 +60,15 @@ if (
     });
   });
 
+  app.get("/config", function (req, res) {
+    res.send({
+      userPoolId: process.env.COGNITO_POOL_ID,
+      clientId: process.env.COGNITO_APP_CLIENT_ID,
+      region: process.env.REGION,
+      identityPoolId: process.env.COGNITO_IDENTITY_POOL_ID,
+    });
+  });
+
   app.post("/account", async function (req, res) {
     const email = req.body.email;
     console.log("get acct data", ddbTable, req.body.email);
@@ -90,7 +99,13 @@ if (
     const email = req.body.email;
     const password = req.body.password;
     try {
-      const cognitoUser = await login(email, password);
+      const cognitoTokens = await login(email, password);
+      //Do not send idToken to client
+      console.log("cognitoTokens ", cognitoTokens);
+      res.send({
+        accessToken: cognitoTokens.accessToken,
+        refreshToken: cognitoTokens.refreshToken,
+      });
     } catch (e) {
       res.status(401).end();
     }

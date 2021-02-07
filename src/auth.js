@@ -75,17 +75,29 @@ function login(email, password) {
     Pool: userPool,
   };
   var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-  cognitoUser.authenticateUser(authenticationDetails, {
-    onSuccess: function (result) {
-      console.log("access token + " + result.getAccessToken().getJwtToken());
-      console.log("id token + " + result.getIdToken().getJwtToken());
-      console.log("refresh token + " + result.getRefreshToken().getToken());
-    },
-    onFailure: function (err) {
-      console.log(err);
-    },
+
+  return new Promise((resolve, reject) => {
+    cognitoUser.authenticateUser(authenticationDetails, {
+      onSuccess: function (result) {
+        var tokens = {
+          idToken: null,
+          accessToken: null,
+          refreshToken: null,
+        };
+        //   console.log("access token + " + result.getAccessToken().getJwtToken());
+        //   console.log("id token + " + result.getIdToken().getJwtToken());
+        //   console.log("refresh token + " + result.getRefreshToken().getToken());
+        tokens.idToken = result.getIdToken().getJwtToken();
+        tokens.accessToken = result.getAccessToken().getJwtToken();
+        tokens.refreshToken = result.getRefreshToken().getToken();
+        resolve(tokens);
+      },
+      onFailure: function (err) {
+        console.log("login error: ", err);
+        reject(err);
+      },
+    });
   });
-  return cognitoUser;
 }
 
 function update(username, password) {
