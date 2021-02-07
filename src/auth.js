@@ -174,6 +174,7 @@ function validateToken(token) {
           jwt.verify(token, pem, function (err, payload) {
             if (err) {
               console.log("Invalid Token.");
+              reject("Invalid Token.");
             } else {
               console.log("Valid Token.");
               console.log(payload);

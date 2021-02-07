@@ -22,11 +22,21 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
-
+    <script type="text/javascript" src="popperjs/popper.min.js"></script>
     <script
       src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
       integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
       crossorigin="anonymous"
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="jQuery-Multiple-Select-Plugin-For-Bootstrap-Bootstrap-Multiselect/dist/css/bootstrap-multiselect.min.css"
+      type="text/css"
+    />
+    <script
+      type="text/javascript"
+      src="jQuery-Multiple-Select-Plugin-For-Bootstrap-Bootstrap-Multiselect/dist/js/bootstrap-multiselect.min.js"
     ></script>
 
     <!-- Custom styles for this template -->
@@ -192,7 +202,6 @@
             </div>
             <div class="modal-body">
               <form id="accountForm" role="form">
-                <input type="hidden" id="account-idToken" name="idToken" />
                 <div class="form-group">
                   <label for="email">Email address</label>
                   <input
@@ -213,6 +222,30 @@
                     placeholder="Your phone number"
                   />
                 </div>
+                <select id="account-filters" multiple="multiple">
+                  <option value="All">All</option>
+                  <option value="Atlantic">Atlantic</option>
+                  <option value="Bergen">Bergen</option>
+                  <option value="Burlington">Burlington</option>
+                  <option value="Camden">Camden</option>
+                  <option value="Cape May">Cape May</option>
+                  <option value="Cumberland">Cumberland</option>
+                  <option value="Essex">Essex</option>
+                  <option value="Gloucester">Gloucester</option>
+                  <option value="Hudson">Hudson</option>
+                  <option value="Hunterdon">Hunterdon</option>
+                  <option value="Mercer">Mercer</option>
+                  <option value="Middlesex">Middlesex</option>
+                  <option value="Monmouth">Monmouth</option>
+                  <option value="Morris">Morris</option>
+                  <option value="Ocean">Ocean</option>
+                  <option value="Passaic">Passaic</option>
+                  <option value="Salem">Salem</option>
+                  <option value="Somerset">Somerset</option>
+                  <option value="Sussex">Sussex</option>
+                  <option value="Union">Union</option>
+                  <option value="Warren">Warren</option>
+                </select>
               </form>
             </div>
             <div class="modal-footer">
@@ -343,6 +376,8 @@
           if (!idToken || !accessToken || !refreshToken) {
             $("#loginModal").modal("show");
           }
+          //https://www.jqueryscript.net/form/jQuery-Multiple-Select-Plugin-For-Bootstrap-Bootstrap-Multiselect.html
+          $("#account-filters").multiselect({});
         }
 
         initApp();
@@ -391,16 +426,17 @@
           "json";
 
         $("#account-update").click(function () {
-          $("#account-idToken").val(Cookies.get("idToken"));
-          $.post(
-            "/account-update",
-            $("#accountForm").serialize(),
-            function (data) {
-              if (data && data.success) {
-                $("#accountUpdateSuccess").show();
-              }
+          console.log($("#accountForm").serialize());
+          var data = $("#accountForm").serialize();
+          data +=
+            "&filters=" +
+            encodeURIComponent(JSON.stringify($("#account-filters").val()));
+          console.log(data);
+          $.post("/account-update", data, function (data) {
+            if (data && data.success) {
+              $("#accountUpdateSuccess").show();
             }
-          );
+          });
         });
 
         $("#account").click(function () {

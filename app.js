@@ -51,6 +51,7 @@ if (
   app.set("view engine", "ejs");
   app.set("views", __dirname + "/views");
   app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(express.static("public"));
 
   app.get("/", function (req, res) {
     res.render("index", {
@@ -149,9 +150,14 @@ if (
 
   app.post("/account", async function (req, res) {
     const idToken = req.body.idToken;
-    console.log("get acct data", ddbTable, req.body);
-    const validToken = await validateToken(idToken);
-    console.log("valid token ", validToken);
+    let validToken;
+    try {
+      validToken = await validateToken(idToken);
+    } catch (e) {
+      var returnStatus = 401;
+      res.status(returnStatus).end();
+      return;
+    }
 
     if (validToken) {
       ddb.getItem(
@@ -182,13 +188,15 @@ if (
   });
 
   app.post("/account-update", async function (req, res) {
+    console.log("account-update", req.body);
     const email = req.body.email;
     const phone = req.body.phone;
     const idToken = req.body.idToken;
+    const filters = JSON.parse(req.body.filters);
+    console.log(filters);
     console.log("get acct data", ddbTable, req.body);
     const validToken = await validateToken(idToken);
     console.log("valid token ", validToken);
-
     if (validToken) {
       ddb.updateItem(
         {
