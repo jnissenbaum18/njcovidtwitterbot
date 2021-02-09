@@ -52,7 +52,7 @@ function registerUser(email, password, phone) {
         }
         cognitoUser = result.user;
         console.log("user name is " + cognitoUser.getUsername());
-        resolve(result.user);
+        resolve(result.user.getUsername());
       }
     );
   });
@@ -79,7 +79,7 @@ function login(email, password) {
   return new Promise((resolve, reject) => {
     cognitoUser.authenticateUser(authenticationDetails, {
       onSuccess: function (result) {
-        var tokens = {
+        var userData = {
           idToken: null,
           accessToken: null,
           refreshToken: null,
@@ -87,10 +87,11 @@ function login(email, password) {
         //   console.log("access token + " + result.getAccessToken().getJwtToken());
         //   console.log("id token + " + result.getIdToken().getJwtToken());
         //   console.log("refresh token + " + result.getRefreshToken().getToken());
-        tokens.idToken = result.getIdToken().getJwtToken();
-        tokens.accessToken = result.getAccessToken().getJwtToken();
-        tokens.refreshToken = result.getRefreshToken().getToken();
-        resolve(tokens);
+        userData.idToken = result.getIdToken().getJwtToken();
+        userData.accessToken = result.getAccessToken().getJwtToken();
+        userData.refreshToken = result.getRefreshToken().getToken();
+        userData.email = result.getIdToken().decodePayload().email;
+        resolve(userData);
       },
       onFailure: function (err) {
         console.log("login error: ", err);

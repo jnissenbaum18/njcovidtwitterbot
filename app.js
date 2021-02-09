@@ -75,13 +75,14 @@ if (
     const email = req.body.email;
     const password = req.body.password;
     try {
-      const cognitoTokens = await login(email, password);
+      const userData = await login(email, password);
       //Not sure if ID token should be stored client side
-      console.log("cognitoTokens ", cognitoTokens);
+      console.log("userData ", userData);
       res.send({
-        idToken: cognitoTokens.idToken,
-        accessToken: cognitoTokens.accessToken,
-        refreshToken: cognitoTokens.refreshToken,
+        idToken: userData.idToken,
+        accessToken: userData.accessToken,
+        refreshToken: userData.refreshToken,
+        email: userData.email,
       });
     } catch (e) {
       res.status(401).end();
@@ -101,6 +102,20 @@ if (
       emailEnabled: { BOOL: emailEnabled },
       phoneEnabled: { BOOL: phoneEnabled },
     };
+
+    const loginUser = await login(email, password);
+
+    if (loginUser) {
+      //Not sure if ID token should be stored client side
+      console.log("userData ", loginUser);
+      res.send({
+        idToken: loginUser.idToken,
+        accessToken: loginUser.accessToken,
+        refreshToken: loginUser.refreshToken,
+        email: loginUser.email,
+      });
+      return;
+    }
 
     const newUser = await registerUser(email, password, phone);
 
@@ -123,29 +138,9 @@ if (
             res.status(returnStatus).end();
             console.log("DDB Error: " + err);
           } else {
-            sns.publish(
-              {
-                Message:
-                  "Name: " +
-                  req.body.name +
-                  "\r\nEmail: " +
-                  req.body.email +
-                  "\r\nPreviewAccess: " +
-                  req.body.previewAccess +
-                  "\r\nTheme: " +
-                  req.body.theme,
-                Subject: "New user sign up!!!",
-                TopicArn: snsTopic,
-              },
-              function (err, data) {
-                if (err) {
-                  res.status(500).end();
-                  console.log("SNS Error: " + err);
-                } else {
-                  res.status(201).end();
-                }
-              }
-            );
+            res.send({
+              email: newUser,
+            });
           }
         }
       );
@@ -181,6 +176,12 @@ if (
             if (data) {
               console.log("account data ", data);
               const resData = {};
+              if (!data || !data.Item) {
+                var returnStatus = 500;
+
+                res.status(returnStatus).end();
+                return;
+              }
               if (data.Item.email) {
                 resData.email = data.Item.email.S;
               }

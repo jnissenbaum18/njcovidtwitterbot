@@ -15,6 +15,10 @@
       integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
       crossorigin="anonymous"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css"
+    />
 
     <script
       src="https://code.jquery.com/jquery-1.12.4.min.js"
@@ -28,16 +32,7 @@
       integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
       crossorigin="anonymous"
     ></script>
-
-    <link
-      rel="stylesheet"
-      href="jQuery-Multiple-Select-Plugin-For-Bootstrap-Bootstrap-Multiselect/dist/css/bootstrap-multiselect.min.css"
-      type="text/css"
-    />
-    <script
-      type="text/javascript"
-      src="jQuery-Multiple-Select-Plugin-For-Bootstrap-Bootstrap-Multiselect/dist/js/bootstrap-multiselect.min.js"
-    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
 
     <!-- Custom styles for this template -->
     <!-- <link href="<%= static_path + "/bootstrap/css/jumbotron-narrow.css" %>" rel="stylesheet"> -->
@@ -46,14 +41,38 @@
   <body>
     <div class="container">
       <div class="header">
-        <ul class="nav nav-pills pull-right">
-          <li><a href="#">Register</a></li>
-          <li><a data-toggle="modal" href="#loginModal">Login</a></li>
-          <li>
-            <a id="account" data-toggle="modal" href="#accountModal">Account</a>
-          </li>
-        </ul>
-        <h3 class="text-muted">NJ COVID Twitter Bot</h3>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item">
+                <a id="register" class="nav-link" href="#">Register</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-toggle="modal" href="#loginModal"
+                  >Login</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  id="account"
+                  data-toggle="modal"
+                  href="#accountModal"
+                  >Account</a
+                >
+              </li>
+            </ul>
+            <span
+              id="nav-is-logged-in"
+              style="display: none"
+              class="navbar-text"
+            >
+              Not logged in
+            </span>
+          </div>
+        </nav>
+
+        <h3 class="text-muted">(BETA) NJ COVID Twitter Bot</h3>
       </div>
       <% if (flask_debug === 'true') { %>
       <div class="alert alert-danger">
@@ -61,25 +80,21 @@
       </div>
       <% } %>
       <div id="signupSuccess" class="alert alert-success" style="display: none">
-        <p id="signupSuccessText">
-          Thanks for signing up! You'll be among the first to know when we
-          launch.
-        </p>
+        <p id="signupSuccessText">Thanks for registering!</p>
       </div>
       <div
         id="signupDuplicate"
         class="alert alert-success"
         style="display: none"
       >
-        <p id="signupDuplicateText">
-          Fear not, you're already on the list! You'll be among the first to
-          know when we launch.
-        </p>
+        <p id="signupDuplicateText">Looks like you already have an account.</p>
       </div>
       <div id="signupError" class="alert alert-info" style="display: none">
         <p id="signupErrorText">
-          Well this is embarrassing. It looks like we're having trouble getting
-          you on the list.
+          Looks like we're having trouble signing you up. Please send an email
+          to
+          <a href="mailto:njcovidtwitterbot.com">njcovidtwitterbot@gmail.com</a
+          >.
         </p>
       </div>
       <div class="jumbotron">
@@ -100,6 +115,10 @@
 
       <div class="footer">
         <p>&copy; NJ COVID Twitter Bot</p>
+        <p>
+          Need help or run into an issue? Please email:
+          <a href="mailto:njcovidtwitterbot.com">njcovidtwitterbot@gmail.com</a>
+        </p>
       </div>
 
       <!-- Modal -->
@@ -111,9 +130,12 @@
         aria-labelledby="signupModal"
         aria-hidden="true"
       >
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
           <div class="modal-content">
             <div class="modal-header">
+              <h4 class="modal-title">
+                Register here to be notified about COVID updates.
+              </h4>
               <button
                 type="button"
                 class="close"
@@ -122,9 +144,6 @@
               >
                 &times;
               </button>
-              <h4 class="modal-title">
-                Register here to be notified about COVID updates.
-              </h4>
             </div>
             <div class="modal-body">
               <form id="signupForm" role="form">
@@ -144,14 +163,16 @@
                     placeholder="Your email address"
                   />
                 </div>
-                <div class="form-group">
-                  <label for="email">Email Alerts Enabled?</label>
+                <div class="form-group form-check">
                   <input
                     type="checkbox"
-                    class="form-control"
+                    class="form-check-input"
                     id="signup-email-enabled"
                     name="emailEnabled"
                   />
+                  <label for="email-enabled" class="form-check-label"
+                    >Email Alerts Enabled?</label
+                  >
                 </div>
                 <div class="form-group">
                   <label for="phone">Mobile phone</label>
@@ -163,14 +184,16 @@
                     placeholder="Your phone number"
                   />
                 </div>
-                <div class="form-group">
-                  <label for="email">Phone Alerts Enabled?</label>
+                <div class="form-group form-check">
                   <input
                     type="checkbox"
-                    class="form-control"
+                    class="form-check-input"
                     id="signup-phone-enabled"
                     name="phoneEnabled"
                   />
+                  <label for="phone-enabled" class="form-check-label"
+                    >Phone Alerts Enabled?</label
+                  >
                 </div>
                 <div class="form-group">
                   <label for="password">Password</label>
@@ -204,9 +227,10 @@
         aria-labelledby="accountModal"
         aria-hidden="true"
       >
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
           <div class="modal-content">
             <div class="modal-header">
+              <h4 class="modal-title">Update your account data here</h4>
               <button
                 type="button"
                 class="close"
@@ -215,11 +239,10 @@
               >
                 &times;
               </button>
-              <h4 class="modal-title">Update your account data here</h4>
             </div>
             <div class="modal-body">
               <form id="accountForm" role="form">
-                <div class="form-group">
+                <!-- <div class="form-group">
                   <label for="email">Email address</label>
                   <input
                     type="email"
@@ -229,15 +252,17 @@
                     placeholder="Your email address"
                     readonly="readonly"
                   />
-                </div>
-                <div class="form-group">
-                  <label for="email">Email Alerts Enabled?</label>
+                </div> -->
+                <div class="form-group form-check">
                   <input
                     type="checkbox"
-                    class="form-control"
+                    class="form-check-input"
                     id="account-email-enabled"
                     name="emailEnabled"
                   />
+                  <label for="email-enabled" class="form-check-label"
+                    >Email Alerts Enabled?</label
+                  >
                 </div>
                 <div class="form-group">
                   <label for="password">Phone Number</label>
@@ -249,16 +274,24 @@
                     placeholder="Your phone number"
                   />
                 </div>
-                <div class="form-group">
-                  <label for="email">Phone Alerts Enabled?</label>
+                <div class="form-group form-check">
                   <input
                     type="checkbox"
-                    class="form-control"
+                    class="form-check-input"
                     id="account-phone-enabled"
                     name="phoneEnabled"
                   />
+                  <label for="phone-enabled" class="form-check-label"
+                    >Phone Alerts Enabled?</label
+                  >
                 </div>
-                <select id="account-filters" multiple="multiple">
+                <select
+                  id="account-filters"
+                  multiple="multiple"
+                  class="selectpicker"
+                  multiple
+                  data-live-search="true"
+                >
                   <option value="All">All</option>
                   <option value="Atlantic">Atlantic</option>
                   <option value="Bergen">Bergen</option>
@@ -315,6 +348,9 @@
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
+              <h4 class="modal-title">
+                Please login to your account. Or register for a new account.
+              </h4>
               <button
                 type="button"
                 class="close"
@@ -323,9 +359,6 @@
               >
                 &times;
               </button>
-              <h4 class="modal-title">
-                Please login to your account. Or register for a new account.
-              </h4>
             </div>
             <div class="modal-body">
               <div
@@ -408,12 +441,15 @@
           idToken = Cookies.get("idToken");
           accessToken = Cookies.get("accessToken");
           refreshToken = Cookies.get("refreshToken");
+          userEmail = Cookies.get("userEmail");
 
-          if (!idToken || !accessToken || !refreshToken) {
+          if (!idToken || !accessToken || !refreshToken || !userEmail) {
             $("#loginModal").modal("show");
+          } else {
+            $("#nav-is-logged-in")
+              .text("Logged in as: " + userEmail)
+              .show();
           }
-          //https://www.jqueryscript.net/form/jQuery-Multiple-Select-Plugin-For-Bootstrap-Bootstrap-Multiselect.html
-          $("#account-filters").multiselect({});
         }
 
         initApp();
@@ -423,9 +459,37 @@
           $("#signupModal").modal("show");
         });
 
+        $("#register").click(function () {
+          $("#loginModal").modal("hide");
+          $("#signupModal").modal("show");
+        });
+
         $("#signup").click(function () {
           $.post("/signup", $("#signupForm").serialize(), function (data) {
-            $("#signupSuccess").show();
+            if (data.accessToken) {
+              Cookies.set("accessToken", data.accessToken);
+            }
+            if (data.refreshToken) {
+              Cookies.set("refreshToken", data.refreshToken);
+            }
+            if (data.idToken) {
+              Cookies.set("idToken", data.idToken);
+            }
+            if (data.userEmail) {
+              Cookies.set("userEmail", data.email);
+              $("#nav-is-logged-in")
+                .text("Logged in as: " + data.email)
+                .show();
+              $("#loginModal").modal("hide");
+            } else if (data.email) {
+              Cookies.set("userEmail", data.email);
+
+              $("#nav-is-logged-in")
+                .text("Logged in as: " + data.email)
+                .show();
+              $("#loginModal").modal("hide");
+              $("#signupSuccess").show();
+            }
           })
             .error(function (xhr) {
               switch (xhr.status) {
@@ -447,7 +511,11 @@
               Cookies.set("accessToken", data.accessToken);
               Cookies.set("refreshToken", data.refreshToken);
               Cookies.set("idToken", data.idToken);
+              Cookies.set("userEmail", data.email);
               $("#loginModal").modal("hide");
+              $("#nav-is-logged-in")
+                .text("Logged in as: " + data.email)
+                .show();
             }
           }).error(function (xhr) {
             switch (xhr.status) {
@@ -510,9 +578,7 @@
                   );
                 }
                 if (data.filters) {
-                  data.filters.forEach((filter) => {
-                    $("#account-filters").multiselect("select", filter);
-                  });
+                  $("#account-filters").selectpicker("val", data.filters);
                 }
                 $("#accountModal").show();
               }
