@@ -91,11 +91,15 @@ if (
   app.post("/signup", async function (req, res) {
     console.log(req.body, req.body.email);
     const email = req.body.email;
-    const password = req.body.password;
+    const emailEnabled = req.body.emailEnabled === "on";
     const phone = formatPhoneNumber(req.body.phone);
+    const phoneEnabled = req.body.phoneEnabled === "on";
+    const password = req.body.password;
     var item = {
       email: { S: email },
       phone: { S: phone },
+      emailEnabled: { BOOL: emailEnabled },
+      phoneEnabled: { BOOL: phoneEnabled },
     };
 
     const newUser = await registerUser(email, password, phone);
@@ -176,10 +180,23 @@ if (
           } else {
             if (data) {
               console.log("account data ", data);
-              res.send({
-                email: data.Item.email.S,
-                phone: data.Item.phone.S,
-              });
+              const resData = {};
+              if (data.Item.email) {
+                resData.email = data.Item.email.S;
+              }
+              if (data.Item.emailEnabled) {
+                resData.emailEnabled = data.Item.emailEnabled.BOOL;
+              }
+              if (data.Item.phone) {
+                resData.phone = data.Item.phone.S;
+              }
+              if (data.Item.phoneEnabled) {
+                resData.phoneEnabled = data.Item.phoneEnabled.BOOL;
+              }
+              if (data.Item.filters) {
+                resData.filters = data.Item.filters.L.map((item) => item.S);
+              }
+              res.send(resData);
             }
           }
         }
@@ -190,48 +207,56 @@ if (
   app.post("/account-update", async function (req, res) {
     console.log("account-update", req.body);
     const email = req.body.email;
+    const emailEnabled = req.body.emailEnabled === "on";
     const phone = req.body.phone;
+    const phoneEnabled = req.body.phoneEnabled === "on";
     const idToken = req.body.idToken;
     const filters = JSON.parse(req.body.filters);
-    console.log(filters);
-    console.log("get acct data", ddbTable, req.body);
     const validToken = await validateToken(idToken);
-    console.log("valid token ", validToken);
+    console.log("valid token ", !!validToken);
     if (validToken) {
-      ddb.updateItem(
-        {
-          TableName: ddbTable,
-          UpdateExpression: "set phone = :p",
-          ExpressionAttributeValues: {
-            ":p": {
-              S: phone,
-            },
+      const ddbFilters = AWS.DynamoDB.Converter.input(filters, true);
+      console.log(ddbFilters);
+      const ddbParams = {
+        TableName: ddbTable,
+        UpdateExpression:
+          "set phone = :p, emailEnabled = :ee, phoneEnabled = :pe, filters = :f",
+        ExpressionAttributeValues: {
+          ":p": {
+            S: phone,
           },
-          ReturnValues: "UPDATED_NEW",
-          Key: {
-            email: { S: validToken.email },
+          ":ee": {
+            BOOL: emailEnabled,
           },
+          ":pe": {
+            BOOL: phoneEnabled,
+          },
+          ":f": ddbFilters,
         },
-        function (err, data) {
-          if (err) {
-            var returnStatus = 500;
+        ReturnValues: "UPDATED_NEW",
+        Key: {
+          email: { S: validToken.email },
+        },
+      };
+      ddb.updateItem(ddbParams, function (err, data) {
+        if (err) {
+          var returnStatus = 500;
 
-            res.status(returnStatus).end();
-            console.log("DDB Error: " + err);
-          } else {
-            if (data) {
-              console.log(data);
-              res.send({
-                success: true,
-              });
-              //   res.send({
-              //     email: data.email.S,
-              //     phone: data.phone.S,
-              //   });
-            }
+          res.status(returnStatus).end();
+          console.log("DDB Error: " + err);
+        } else {
+          if (data) {
+            console.log(data);
+            res.send({
+              success: true,
+            });
+            //   res.send({
+            //     email: data.email.S,
+            //     phone: data.phone.S,
+            //   });
           }
         }
-      );
+      });
     }
   });
 

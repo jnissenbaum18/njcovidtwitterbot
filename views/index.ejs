@@ -47,14 +47,13 @@
     <div class="container">
       <div class="header">
         <ul class="nav nav-pills pull-right">
-          <li class="active"><a href="#">Home</a></li>
           <li><a href="#">Register</a></li>
           <li><a data-toggle="modal" href="#loginModal">Login</a></li>
           <li>
             <a id="account" data-toggle="modal" href="#accountModal">Account</a>
           </li>
         </ul>
-        <h3 class="text-muted">A New Startup</h3>
+        <h3 class="text-muted">NJ COVID Twitter Bot</h3>
       </div>
       <% if (flask_debug === 'true') { %>
       <div class="alert alert-danger">
@@ -146,6 +145,15 @@
                   />
                 </div>
                 <div class="form-group">
+                  <label for="email">Email Alerts Enabled?</label>
+                  <input
+                    type="checkbox"
+                    class="form-control"
+                    id="signup-email-enabled"
+                    name="emailEnabled"
+                  />
+                </div>
+                <div class="form-group">
                   <label for="phone">Mobile phone</label>
                   <input
                     type="phone"
@@ -153,6 +161,15 @@
                     id="signup-phone"
                     name="phone"
                     placeholder="Your phone number"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="email">Phone Alerts Enabled?</label>
+                  <input
+                    type="checkbox"
+                    class="form-control"
+                    id="signup-phone-enabled"
+                    name="phoneEnabled"
                   />
                 </div>
                 <div class="form-group">
@@ -210,6 +227,16 @@
                     id="account-email"
                     name="email"
                     placeholder="Your email address"
+                    readonly="readonly"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="email">Email Alerts Enabled?</label>
+                  <input
+                    type="checkbox"
+                    class="form-control"
+                    id="account-email-enabled"
+                    name="emailEnabled"
                   />
                 </div>
                 <div class="form-group">
@@ -220,6 +247,15 @@
                     id="account-phone"
                     name="phone"
                     placeholder="Your phone number"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="email">Phone Alerts Enabled?</label>
+                  <input
+                    type="checkbox"
+                    class="form-control"
+                    id="account-phone-enabled"
+                    name="phoneEnabled"
                   />
                 </div>
                 <select id="account-filters" multiple="multiple">
@@ -431,6 +467,7 @@
           data +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#account-filters").val()));
+          data += "&idToken=" + encodeURIComponent(Cookies.get("idToken"));
           console.log(data);
           $.post("/account-update", data, function (data) {
             if (data && data.success) {
@@ -457,8 +494,25 @@
                 if (data.email) {
                   $("#account-email").val(data.email);
                 }
+                if (data.emailEnabled) {
+                  $("#account-email-enabled").prop(
+                    "checked",
+                    data.emailEnabled
+                  );
+                }
                 if (data.phone) {
                   $("#account-phone").val(data.phone);
+                }
+                if (data.phoneEnabled) {
+                  $("#account-phone-enabled").prop(
+                    "checked",
+                    data.phoneEnabled
+                  );
+                }
+                if (data.filters) {
+                  data.filters.forEach((filter) => {
+                    $("#account-filters").multiselect("select", filter);
+                  });
                 }
                 $("#accountModal").show();
               }
