@@ -1,6 +1,7 @@
 const { streamInit } = require("./src/twitter");
 const dotenv = require("dotenv").config();
 const { registerUser, login, validateToken } = require("./src/auth");
+const { sendEmail, sendSMS } = require("./src/messaging");
 const { formatPhoneNumber } = require("./src/utils");
 
 // Include the cluster module
@@ -257,6 +258,21 @@ if (
             //   });
           }
         }
+      });
+    }
+  });
+
+  app.get("/test-message", async function (req, res) {
+    if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
+      const emailStatus = sendEmail(
+        ["njcovidtwitterbot@gmail.com"],
+        "test email",
+        "test subject"
+      );
+      const smsStatus = sendSMS("+19083800715", "Test Message");
+      res.send({
+        emailStatus,
+        smsStatus,
       });
     }
   });
