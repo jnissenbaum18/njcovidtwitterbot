@@ -1,0 +1,5 @@
+.DS_Store
+.env
+
+# Elastic Beanstalk CLI Files
+awsTwitterbot.zip

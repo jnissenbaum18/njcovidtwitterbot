@@ -11,9 +11,10 @@ const token = process.env.TWITTER_API_BEARER_TOKEN;
 
 // Edit rules as desired here below
 const rules = [
-  // { value: "from:C19VaxxUpdates -is:reply", tag: "updates" },
+  { value: "from:C19VaxxUpdates -is:reply", tag: "nj updates" },
+  { value: "from:turbovax -is:reply", tag: "ny updates" },
   // { value: "dog has:images -is:retweet", tag: "dog pictures" },
-  { value: "cat has:images -grumpy", tag: "cat pictures" },
+  // { value: "cat has:images -grumpy", tag: "cat pictures" },
 ];
 
 const messageFilters = [
@@ -38,7 +39,11 @@ const messageFilters = [
   "Sussex",
   "Union",
   "Warren",
-  "Cat",
+  "Bronx",
+  "Brooklyn",
+  "Manhattan",
+  "Queens",
+  "Staten Island",
 ];
 
 async function getAllRules() {
@@ -108,7 +113,7 @@ async function getUsersForMessage(mongoClient, message) {
     message.toLocaleLowerCase()
   );
   const users = await findUsersForFilters(mongoClient, foundFilters);
-  console.log(users);
+  console.log(users.length);
   const emails = users
     .map(({ email, emailEnabled }) => {
       if (emailEnabled) {
@@ -125,7 +130,6 @@ async function getUsersForMessage(mongoClient, message) {
       return null;
     })
     .filter((phone) => phone);
-  console.log(emails);
   return {
     emails,
     phoneNumbers,
@@ -168,6 +172,14 @@ function streamConnect(mongoClient) {
           console.error("Stream unauthorized ", data);
           return;
         }
+        if (
+          data.connection_issue &&
+          data.connection_issue === "TooManyConnections"
+        ) {
+          console.log("Stream refused to connect, too many connections");
+          stream.emit("timeout");
+          return;
+        }
         const json = JSON.parse(data);
         console.log(json);
         const text = json.data.text;
@@ -175,7 +187,8 @@ function streamConnect(mongoClient) {
           mongoClient,
           text
         );
-        sendMessages(text, emails, phoneNumbers);
+        console.log("Send messages ", emails, phoneNumbers);
+        // sendMessages(text, emails, phoneNumbers);
       } catch (e) {
         const errMsg = String(e.message);
         if (errMsg.includes("Unexpected end of JSON input")) {

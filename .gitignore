@@ -6,3 +6,7 @@ node_modules
 .env
 .ebextensions
 awsTwitterbot.zip
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

@@ -70,6 +70,7 @@ if (
   });
 
   app.post("/validate-token", async function (req, res) {
+    console.log("POST-Validate-Token", !!req.body.idToken);
     const idToken = req.body.idToken;
     try {
       const validToken = await validateToken(idToken);
@@ -92,7 +93,7 @@ if (
   });
 
   app.post("/login", async function (req, res) {
-    console.log(req.body);
+    console.log("POST-login", req.body.email, !!req.body.password);
     const email = req.body.email;
     const password = req.body.password;
     try {
@@ -111,7 +112,14 @@ if (
   });
 
   app.post("/signup", async function (req, res) {
-    console.log(req.body, req.body.email);
+    console.log(
+      "POST-Signup",
+      req.body.email,
+      req.body.emailEnabled,
+      req.body.phone,
+      req.body.phoneEnabled,
+      req.body.filters
+    );
     const email = req.body.email;
     const emailEnabled = req.body.emailEnabled === "on";
     const phone = formatPhoneNumber(req.body.phone);
@@ -130,7 +138,6 @@ if (
 
     if (loginUser) {
       //Not sure if ID token should be stored client side
-      console.log("userData ", loginUser);
       res.send({
         idToken: loginUser.idToken,
         accessToken: loginUser.accessToken,
@@ -159,6 +166,7 @@ if (
   });
 
   app.post("/account", async function (req, res) {
+    console.log("POST-Validate-Token", !!req.body.idToken);
     const idToken = req.body.idToken;
     let validToken;
     try {
