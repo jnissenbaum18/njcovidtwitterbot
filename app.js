@@ -1,15 +1,15 @@
 const { streamInit } = require("./src/twitter");
 const dotenv = require("dotenv").config();
 const { registerUser, login, validateToken } = require("./src/auth");
-const { sendEmail, sendSMS } = require("./src/messaging");
-const { formatPhoneNumber } = require("./src/utils");
+const { sendEmails, sendSMS } = require("./src/messaging");
+const { formatPhoneNumber, searchMessageForFilters } = require("./src/utils");
 const {
   connectToClient,
   closeClient,
   createNewUser,
   findUser,
   findUserAndUpdate,
-  findUsersForFilter,
+  findUsersForFilters,
 } = require("./src/mongo");
 
 // Include the cluster module
@@ -67,6 +67,28 @@ if (
       region: process.env.REGION,
       identityPoolId: process.env.COGNITO_IDENTITY_POOL_ID,
     });
+  });
+
+  app.post("/validate-token", async function (req, res) {
+    const idToken = req.body.idToken;
+    try {
+      const validToken = await validateToken(idToken);
+      if (validToken) {
+        res.send({
+          isValid: true,
+        });
+        return;
+      }
+      res.send({
+        isValid: false,
+      });
+    } catch (e) {
+      if (e === "Invalid Token.") {
+        res.send({
+          isValid: false,
+        });
+      }
+    }
   });
 
   app.post("/login", async function (req, res) {
@@ -151,10 +173,11 @@ if (
       try {
         const userData = await findUser(mongoClient, validToken.email);
         res.send({
-          email: userData.email,
-          emailEnabled: userData.emailEnabled,
-          phone: userData.phone,
-          phoneEnabled: userData.phoneEnabled,
+          email: userData.email || "",
+          emailEnabled: userData.emailEnabled || false,
+          phone: userData.phone || "",
+          phoneEnabled: userData.phoneEnabled || false,
+          filters: userData.filters || [],
         });
       } catch (err) {
         var returnStatus = 500;
@@ -205,19 +228,22 @@ if (
 
   app.get("/test-message", async function (req, res) {
     if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
-      const users = await findUsersForFilter(mongoClient, "Atlantic");
-      console.log(users);
-      return;
-      const emailStatus = sendEmail(
-        ["njcovidtwitterbot@gmail.com"],
-        "test email",
-        "test subject"
+      /* const messageFilters = searchMessageForFilters(
+        filters,
+        "UNION ATLANTIC -- ".toLocaleLowerCase()
       );
+      console.log(messageFilters);
+      const users = await findUsersForFilters(mongoClient, messageFilters);
+      console.log(users);
+       */
+      // return;
+      // const emailStatus = sendEmails(
+      //   ["njcovidtwitterbot@gmail.com"],
+      //   "test email",
+      //   "test subject"
+      // );
       const smsStatus = sendSMS("+19083800715", "Test Message");
-      res.send({
-        emailStatus,
-        smsStatus,
-      });
+      res.send({});
     }
   });
 
@@ -227,7 +253,7 @@ if (
     try {
       mongoClient = await connectToClient();
       new Promise(async (resolve, reject) => {
-        // await streamInit();
+        // await streamInit(mongoClient);
       });
     } catch (e) {
       console.error(e);

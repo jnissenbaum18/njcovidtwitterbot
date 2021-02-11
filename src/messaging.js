@@ -3,13 +3,14 @@ const AWS = require("aws-sdk");
 // Set the region
 AWS.config.update({ region: process.env.REGION });
 
-async function sendEmail(emailAddresses, emailBody, emailSubject) {
+async function sendEmails(emailAddresses, emailBody, emailSubject) {
   var params = {
     Destination: {
       BccAddresses: [...emailAddresses],
       /* required */
       CcAddresses: [],
       ToAddresses: [
+        "njcovidtwitterbot@gmail.com",
         /* more items */
       ],
     },
@@ -46,7 +47,7 @@ async function sendEmail(emailAddresses, emailBody, emailSubject) {
       return data;
     })
     .catch(function (err) {
-      console.error(err, err.stack);
+      console.error("Email send error ", err, err.stack);
     });
 }
 
@@ -69,11 +70,11 @@ async function sendSMS(phoneNumber, message) {
       return data;
     })
     .catch(function (err) {
-      console.error(err, err.stack);
+      console.error("SMS send error ", err, err.stack);
     });
 }
 
 module.exports = {
-  sendEmail,
+  sendEmails,
   sendSMS,
 };

@@ -473,19 +473,20 @@
             region = data.region;
             identityPoolId = data.identityPoolId;
           }); */
-
           idToken = Cookies.get("idToken");
           accessToken = Cookies.get("accessToken");
           refreshToken = Cookies.get("refreshToken");
           userEmail = Cookies.get("userEmail");
 
-          if (!idToken || !accessToken || !refreshToken || !userEmail) {
-            $("#loginModal").modal("show");
-          } else {
-            $("#nav-is-logged-in")
-              .text("Logged in as: " + userEmail)
-              .show();
-          }
+          $.post("/validate-token", { idToken }, function (data) {
+            if (data.isValid) {
+              $("#nav-is-logged-in")
+                .text("Logged in as: " + userEmail)
+                .show();
+            } else {
+              $("#loginModal").modal("show");
+            }
+          });
         }
 
         initApp();

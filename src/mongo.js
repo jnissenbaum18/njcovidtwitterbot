@@ -115,12 +115,12 @@ async function findUserAndUpdate(mongoClient, email, user) {
     .catch((error) => console.error(error));
 }
 
-async function findUsersForFilter(mongoClient, filter) {
+async function findUsersForFilters(mongoClient, filters) {
   return mongoClient
     .db("covidBot")
     .collection("botUsers")
     .find({
-      filters: filter,
+      filters: { $in: [...filters, "All"] },
     })
     .toArray()
     .catch((error) => console.error(error));
@@ -136,5 +136,5 @@ module.exports = {
   createNewUser,
   findUser,
   findUserAndUpdate,
-  findUsersForFilter,
+  findUsersForFilters,
 };

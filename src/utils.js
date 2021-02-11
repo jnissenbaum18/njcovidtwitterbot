@@ -7,6 +7,12 @@ function formatPhoneNumber(phoneNumberString) {
   return null;
 }
 
+function searchMessageForFilters(filters, string) {
+  console.log(filters, string);
+  return filters.filter((filter) => string.includes(filter.toLowerCase()));
+}
+
 module.exports = {
   formatPhoneNumber,
+  searchMessageForFilters,
 };

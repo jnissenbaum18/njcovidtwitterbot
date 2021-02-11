@@ -1,8 +1,8 @@
 const needle = require("needle");
 const dotenv = require("dotenv").config();
-
-const phoneNumbers = ["9084035937", "9083344342", "7705680057"];
-const emails = ["jnissenbaum18@gmail.com", "nlem@verizon.net", "em@gdnlaw.com"];
+const { searchMessageForFilters } = require("./utils");
+const { findUsersForFilters } = require("./mongo");
+const { sendEmails, sendSMS } = require("./messaging");
 
 const rulesURL = "https://api.twitter.com/2/tweets/search/stream/rules";
 const streamURL = "https://api.twitter.com/2/tweets/search/stream";
@@ -11,9 +11,34 @@ const token = process.env.TWITTER_API_BEARER_TOKEN;
 
 // Edit rules as desired here below
 const rules = [
-  { value: "from:C19VaxxUpdates", tag: "updates" },
+  // { value: "from:C19VaxxUpdates -is:reply", tag: "updates" },
   // { value: "dog has:images -is:retweet", tag: "dog pictures" },
-  // { value: "cat has:images -grumpy", tag: "cat pictures" },
+  { value: "cat has:images -grumpy", tag: "cat pictures" },
+];
+
+const messageFilters = [
+  "Atlantic",
+  "Bergen",
+  "Burlington",
+  "Camden",
+  "Cape",
+  "Cumberland",
+  "Essex",
+  "Gloucester",
+  "Hudson",
+  "Hunterdon",
+  "Mercer",
+  "Middlesex",
+  "Monmouth",
+  "Morris",
+  "Ocean",
+  "Passaic",
+  "Salem",
+  "Somerset",
+  "Sussex",
+  "Union",
+  "Warren",
+  "Cat",
 ];
 
 async function getAllRules() {
@@ -77,7 +102,49 @@ async function setRules() {
   return response.body;
 }
 
-function streamConnect() {
+async function getUsersForMessage(mongoClient, message) {
+  const foundFilters = searchMessageForFilters(
+    messageFilters,
+    message.toLocaleLowerCase()
+  );
+  const users = await findUsersForFilters(mongoClient, foundFilters);
+  console.log(users);
+  const emails = users
+    .map(({ email, emailEnabled }) => {
+      if (emailEnabled) {
+        return email;
+      }
+      return null;
+    })
+    .filter((email) => email);
+  const phoneNumbers = users
+    .map(({ phone, phoneEnabled }) => {
+      if (phoneEnabled) {
+        return phone;
+      }
+      return null;
+    })
+    .filter((phone) => phone);
+  console.log(emails);
+  return {
+    emails,
+    phoneNumbers,
+  };
+}
+
+function sendMessages(text, emails, phoneNumbers) {
+  try {
+    sendEmails(emails, text, "COVID Twitter Alert");
+    /* phoneNumbers.forEach((phone) => {
+      console.log("Sending message to phone: ", phone);
+      sendSMS(phone, text);
+    }); */
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function streamConnect(mongoClient) {
   //Listen to the stream
   const options = {
     timeout: 20000,
@@ -94,11 +161,21 @@ function streamConnect() {
   );
 
   stream
-    .on("data", (data) => {
+    .on("data", async (data) => {
       try {
+        console.log("data ", data);
+        if (data.status === 401) {
+          console.error("Stream unauthorized ", data);
+          return;
+        }
         const json = JSON.parse(data);
         console.log(json);
-        sendMessages(json);
+        const text = json.data.text;
+        const { emails, phoneNumbers } = await getUsersForMessage(
+          mongoClient,
+          text
+        );
+        sendMessages(text, emails, phoneNumbers);
       } catch (e) {
         const errMsg = String(e.message);
         if (errMsg.includes("Unexpected end of JSON input")) {
@@ -120,7 +197,7 @@ function streamConnect() {
 
 let filteredStream = null;
 
-async function streamInit() {
+async function streamInit(mongoClient) {
   console.log("Initiating stream");
   let currentRules;
   try {
@@ -142,7 +219,7 @@ async function streamInit() {
   // To avoid rate limites, this logic implements exponential backoff, so the wait time
   // will increase if the client cannot reconnect to the stream.
   if (!filteredStream) {
-    filteredStream = streamConnect();
+    filteredStream = streamConnect(mongoClient);
   }
   let timeout = 0;
   filteredStream.on("timeout", () => {
@@ -150,9 +227,9 @@ async function streamInit() {
     console.warn("A connection error occurred. Reconnecting…");
     setTimeout(() => {
       timeout++;
-      streamConnect(token);
+      streamConnect(mongoClient);
     }, 2 ** timeout);
-    streamConnect(token);
+    streamConnect(mongoClient);
   });
 }
 
