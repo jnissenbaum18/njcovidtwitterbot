@@ -3,6 +3,14 @@ const dotenv = require("dotenv").config();
 const { registerUser, login, validateToken } = require("./src/auth");
 const { sendEmail, sendSMS } = require("./src/messaging");
 const { formatPhoneNumber } = require("./src/utils");
+const {
+  connectToClient,
+  closeClient,
+  createNewUser,
+  findUser,
+  findUserAndUpdate,
+  findUsersForFilter,
+} = require("./src/mongo");
 
 // Include the cluster module
 var cluster = require("cluster");
@@ -36,17 +44,7 @@ if (
   var bodyParser = require("body-parser");
 
   AWS.config.region = process.env.REGION;
-
-  let ddbConfig = {};
-
-  if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
-    ddbConfig.endpoint = process.env.DYNAMODB_ENDPOINT;
-  }
-  var sns = new AWS.SNS();
-  var ddb = new AWS.DynamoDB(ddbConfig);
-
-  var ddbTable = process.env.DYNAMODB_USER_TABLE;
-  var snsTopic = process.env.NEW_SIGNUP_TOPIC;
+  let mongoClient;
   var app = express();
 
   app.set("view engine", "ejs");
@@ -96,12 +94,14 @@ if (
     const emailEnabled = req.body.emailEnabled === "on";
     const phone = formatPhoneNumber(req.body.phone);
     const phoneEnabled = req.body.phoneEnabled === "on";
+    const filters = req.body.filters;
     const password = req.body.password;
     var item = {
-      email: { S: email },
-      phone: { S: phone },
-      emailEnabled: { BOOL: emailEnabled },
-      phoneEnabled: { BOOL: phoneEnabled },
+      email,
+      phone,
+      emailEnabled,
+      phoneEnabled,
+      filters,
     };
 
     const loginUser = await login(email, password);
@@ -122,29 +122,17 @@ if (
 
     console.log(newUser);
     if (newUser) {
-      ddb.putItem(
-        {
-          TableName: ddbTable,
-          Item: item,
-          Expected: { email: { Exists: false } },
-        },
-        function (err, data) {
-          if (err) {
-            var returnStatus = 500;
+      try {
+        const mongoInsert = await createNewUser(mongoClient, item);
+        res.send({
+          email: newUser,
+        });
+      } catch (err) {
+        var returnStatus = 500;
 
-            if (err.code === "ConditionalCheckFailedException") {
-              returnStatus = 409;
-            }
-
-            res.status(returnStatus).end();
-            console.log("DDB Error: " + err);
-          } else {
-            res.send({
-              email: newUser,
-            });
-          }
-        }
-      );
+        res.status(returnStatus).end();
+        console.log("Mongo API Error: " + err);
+      }
     }
   });
 
@@ -160,49 +148,20 @@ if (
     }
 
     if (validToken) {
-      ddb.getItem(
-        {
-          TableName: ddbTable,
-          Key: {
-            email: { S: validToken.email },
-          },
-        },
-        function (err, data) {
-          if (err) {
-            var returnStatus = 500;
+      try {
+        const userData = await findUser(mongoClient, validToken.email);
+        res.send({
+          email: userData.email,
+          emailEnabled: userData.emailEnabled,
+          phone: userData.phone,
+          phoneEnabled: userData.phoneEnabled,
+        });
+      } catch (err) {
+        var returnStatus = 500;
 
-            res.status(returnStatus).end();
-            console.log("DDB Error: " + err);
-          } else {
-            if (data) {
-              console.log("account data ", data);
-              const resData = {};
-              if (!data || !data.Item) {
-                var returnStatus = 500;
-
-                res.status(returnStatus).end();
-                return;
-              }
-              if (data.Item.email) {
-                resData.email = data.Item.email.S;
-              }
-              if (data.Item.emailEnabled) {
-                resData.emailEnabled = data.Item.emailEnabled.BOOL;
-              }
-              if (data.Item.phone) {
-                resData.phone = data.Item.phone.S;
-              }
-              if (data.Item.phoneEnabled) {
-                resData.phoneEnabled = data.Item.phoneEnabled.BOOL;
-              }
-              if (data.Item.filters) {
-                resData.filters = data.Item.filters.L.map((item) => item.S);
-              }
-              res.send(resData);
-            }
-          }
-        }
-      );
+        res.status(returnStatus).end();
+        console.log("Mongo API Error: " + err);
+      }
     }
   });
 
@@ -212,58 +171,43 @@ if (
     const emailEnabled = req.body.emailEnabled === "on";
     const phone = req.body.phone;
     const phoneEnabled = req.body.phoneEnabled === "on";
-    const idToken = req.body.idToken;
     const filters = JSON.parse(req.body.filters);
+    const user = {
+      emailEnabled,
+      phone,
+      phoneEnabled,
+      filters,
+    };
+    const idToken = req.body.idToken;
     const validToken = await validateToken(idToken);
     console.log("valid token ", !!validToken);
     if (validToken) {
-      const ddbFilters = AWS.DynamoDB.Converter.input(filters, true);
-      console.log(ddbFilters);
-      const ddbParams = {
-        TableName: ddbTable,
-        UpdateExpression:
-          "set phone = :p, emailEnabled = :ee, phoneEnabled = :pe, filters = :f",
-        ExpressionAttributeValues: {
-          ":p": {
-            S: phone,
-          },
-          ":ee": {
-            BOOL: emailEnabled,
-          },
-          ":pe": {
-            BOOL: phoneEnabled,
-          },
-          ":f": ddbFilters,
-        },
-        ReturnValues: "UPDATED_NEW",
-        Key: {
-          email: { S: validToken.email },
-        },
-      };
-      ddb.updateItem(ddbParams, function (err, data) {
-        if (err) {
-          var returnStatus = 500;
-
-          res.status(returnStatus).end();
-          console.log("DDB Error: " + err);
-        } else {
-          if (data) {
-            console.log(data);
-            res.send({
-              success: true,
-            });
-            //   res.send({
-            //     email: data.email.S,
-            //     phone: data.phone.S,
-            //   });
-          }
+      try {
+        const userData = await findUserAndUpdate(
+          mongoClient,
+          validToken.email,
+          user
+        );
+        console.log("userData ", userData);
+        if (userData.lastErrorObject.updatedExisting) {
+          res.send({
+            success: true,
+          });
         }
-      });
+      } catch (err) {
+        var returnStatus = 500;
+
+        res.status(returnStatus).end();
+        console.log("Mongo API Error: " + err);
+      }
     }
   });
 
   app.get("/test-message", async function (req, res) {
     if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
+      const users = await findUsersForFilter(mongoClient, "Atlantic");
+      console.log(users);
+      return;
       const emailStatus = sendEmail(
         ["njcovidtwitterbot@gmail.com"],
         "test email",
@@ -279,8 +223,9 @@ if (
 
   var port = process.env.PORT || 3000;
 
-  var server = app.listen(port, function () {
+  var server = app.listen(port, async function () {
     try {
+      mongoClient = await connectToClient();
       new Promise(async (resolve, reject) => {
         // await streamInit();
       });

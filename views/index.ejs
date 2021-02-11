@@ -195,6 +195,39 @@
                     >Phone Alerts Enabled?</label
                   >
                 </div>
+                <label for="signup-filters" class="form-check-label"
+                  >Tweet Filters</label
+                >
+                <select
+                  id="signup-filters"
+                  multiple="multiple"
+                  class="selectpicker"
+                  multiple
+                  data-live-search="true"
+                >
+                  <option value="All">All</option>
+                  <option value="Atlantic">Atlantic</option>
+                  <option value="Bergen">Bergen</option>
+                  <option value="Burlington">Burlington</option>
+                  <option value="Camden">Camden</option>
+                  <option value="Cape May">Cape May</option>
+                  <option value="Cumberland">Cumberland</option>
+                  <option value="Essex">Essex</option>
+                  <option value="Gloucester">Gloucester</option>
+                  <option value="Hudson">Hudson</option>
+                  <option value="Hunterdon">Hunterdon</option>
+                  <option value="Mercer">Mercer</option>
+                  <option value="Middlesex">Middlesex</option>
+                  <option value="Monmouth">Monmouth</option>
+                  <option value="Morris">Morris</option>
+                  <option value="Ocean">Ocean</option>
+                  <option value="Passaic">Passaic</option>
+                  <option value="Salem">Salem</option>
+                  <option value="Somerset">Somerset</option>
+                  <option value="Sussex">Sussex</option>
+                  <option value="Union">Union</option>
+                  <option value="Warren">Warren</option>
+                </select>
                 <div class="form-group">
                   <label for="password">Password</label>
                   <input
@@ -285,6 +318,9 @@
                     >Phone Alerts Enabled?</label
                   >
                 </div>
+                <label for="account-filters" class="form-check-label"
+                  >Tweet Filters</label
+                >
                 <select
                   id="account-filters"
                   multiple="multiple"
@@ -465,7 +501,11 @@
         });
 
         $("#signup").click(function () {
-          $.post("/signup", $("#signupForm").serialize(), function (data) {
+          var signupData = $("#signupForm").serialize();
+          signupData +=
+            "&filters=" +
+            encodeURIComponent(JSON.stringify($("#signup-filters").val()));
+          $.post("/signup", signupData, function (data) {
             if (data.accessToken) {
               Cookies.set("accessToken", data.accessToken);
             }
@@ -530,13 +570,11 @@
           "json";
 
         $("#account-update").click(function () {
-          console.log($("#accountForm").serialize());
           var data = $("#accountForm").serialize();
           data +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#account-filters").val()));
           data += "&idToken=" + encodeURIComponent(Cookies.get("idToken"));
-          console.log(data);
           $.post("/account-update", data, function (data) {
             if (data && data.success) {
               $("#accountUpdateSuccess").show();
