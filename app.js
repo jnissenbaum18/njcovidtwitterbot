@@ -143,8 +143,7 @@ if (
       res.status(409).end();
       return;
     }
-    console.log("register user");
-    return;
+
     const newUser = await registerUser(email, password, phone);
 
     console.log(newUser);
