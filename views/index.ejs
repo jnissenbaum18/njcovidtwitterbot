@@ -72,7 +72,7 @@
           </div>
         </nav>
 
-        <h3 class="text-muted">(BETA) NJ COVID Twitter Bot</h3>
+        <h3 class="text-muted">(BETA) COVID19 Vaccine Alert Bot</h3>
       </div>
       <% if (flask_debug === 'true') { %>
       <div class="alert alert-danger">
@@ -98,10 +98,47 @@
         </p>
       </div>
       <div class="jumbotron">
-        <h1>The next big thing is coming...</h1>
+        <h2>
+          Get alerted when a Covid19 vaccination appointment becomes available
+          in NY and NJ!
+        </h2>
+        <h3>How it works:</h3>
         <p class="lead">
-          We're pretty thrilled to unveil our latest creation. Sign up below to
-          be notified when we officially launch!
+          This website monitors the twitter accounts
+          <a href="https://twitter.com/C19VaxxUpdates">@C19VaxxUpdates</a> for
+          NJ and <a href="https://twitter.com/turbovax">@turbovax</a> for NY for
+          tweets about Covid19 vaccination appointment openings.
+        </p>
+        <p>
+          When either account tweets about an open Covid vaccination appointment
+          slot, the website will immediately send out a text message or an email
+          to all users who are registered with us containing the text of the
+          tweet. Simply follow the link provided in the sent tweet to sign up
+          for an appointment.
+        </p>
+        <p>
+          To register, please click the signup button below. You can choose to
+          enable text messaging to the phone number you provide, or enable
+          emails to the email address you provide, or both.
+        </p>
+        <p>
+          We also give you the option to filter for keywords you wish to watch
+          for. For instance, if you live in Brooklyn, NY, you would select
+          Brooklyn from the filters dropdown. Then whenever a tweet about
+          Brooklyn is sent, you will be alerted through our system. If you would
+          also want to monitor other areas as well, you may select more than one
+          option.
+        </p>
+        <p>
+          Currently, all counties in NJ and all boroughs of NYC are supported.
+          If at any time you wish to change these preferences, click the Account
+          link in the navbar to save your updated preferences.
+        </p>
+        <p>
+          If you are aware of more sources of appointment information or
+          encounter problems with the website, please email
+          <a href="mailto:njcovidtwitterbot.com">njcovidtwitterbot@gmail.com</a>
+          and we'll get to work on it!
         </p>
         <p>
           <a
@@ -114,7 +151,7 @@
       </div>
 
       <div class="footer">
-        <p>&copy; NJ COVID Twitter Bot</p>
+        <p>&copy;COVID Vaccine Alert Bot</p>
         <p>
           Need help or run into an issue? Please email:
           <a href="mailto:njcovidtwitterbot.com">njcovidtwitterbot@gmail.com</a>
@@ -569,10 +606,11 @@
                 .show();
             }
           }).error(function (xhr) {
+            console.log(xhr.status);
             switch (xhr.status) {
               case 401:
-                break;
                 $("#loginError").show();
+                break;
               default:
                 $("#loginError").show();
             }

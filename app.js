@@ -133,20 +133,18 @@ if (
       phoneEnabled,
       filters,
     };
-
-    const loginUser = await login(email, password);
+    let loginUser = null;
+    try {
+      loginUser = await login(email, password);
+    } catch (e) {}
 
     if (loginUser) {
       //Not sure if ID token should be stored client side
-      res.send({
-        idToken: loginUser.idToken,
-        accessToken: loginUser.accessToken,
-        refreshToken: loginUser.refreshToken,
-        email: loginUser.email,
-      });
+      res.status(409).end();
       return;
     }
-
+    console.log("register user");
+    return;
     const newUser = await registerUser(email, password, phone);
 
     console.log(newUser);
