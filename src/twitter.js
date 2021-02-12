@@ -167,7 +167,6 @@ function streamConnect(mongoClient) {
   stream
     .on("data", async (data) => {
       try {
-        console.log("data ", data);
         if (data.status === 401) {
           console.error("Stream unauthorized ", data);
           return;

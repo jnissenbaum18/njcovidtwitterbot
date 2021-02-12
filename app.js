@@ -258,7 +258,7 @@ if (
     try {
       mongoClient = await connectToClient();
       new Promise(async (resolve, reject) => {
-        await streamInit(mongoClient);
+        // await streamInit(mongoClient);
       });
     } catch (e) {
       console.error(e);
