@@ -141,7 +141,7 @@ if (
     if (loginUser) {
       //Not sure if ID token should be stored client side
       // res.status(409).end();
-      return;
+      // return;
     }
     let newUser = null;
     try {
@@ -152,7 +152,9 @@ if (
     if (newUser || true) {
       //temporary override of user signup
       try {
+        console.log("inserting new user");
         const mongoInsert = await createNewUser(mongoClient, item);
+        console.log(mongoInsert);
         res.send({
           // email: newUser,
           email: item.email,

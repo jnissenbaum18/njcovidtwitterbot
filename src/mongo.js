@@ -76,7 +76,7 @@ async function createNewUser(mongoClient, user) {
         },
       },
       {
-        upsert: false,
+        upsert: true,
         returnNewDocument: true,
       }
     )
