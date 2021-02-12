@@ -6,7 +6,7 @@ const uuidv4 = require("uuid/v4");
 //Specify the Amazon DocumentDB cert
 
 async function connectToClient() {
-  var ca = [fs.readFileSync(process.env.DOCUMENTDB_EC2_PEM_PATH)];
+  var ca = [fs.readFileSync("../rds-key/rds-combined-ca-bundle.pem")];
   return new Promise((resolve, reject) => {
     let clientString = `mongodb://${process.env.DOCUMENTDB_ADMIN_USERNAME}:${process.env.DOCUMENTDB_ADMIN_PASSWORD}@${process.env.DOCUMENTDB_HOST}:27017?ssl=true&replicaSet=rs0&readPreference=secondaryPreferred`;
     let mongoOptions = {
