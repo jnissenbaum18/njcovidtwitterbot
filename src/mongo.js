@@ -96,21 +96,42 @@ async function findUser(mongoClient, email) {
     .catch((error) => console.error(error));
 }
 
-async function findUserAndUpdate(mongoClient, email, user) {
-  if (!user && !user.email) {
-    throw new Error("Cannot update user, email undefined ", user);
+async function findUserAndUpdate(
+  mongoClient,
+  userSearchParams,
+  userUpdateParams
+) {
+  if (!userUpdateParams || !user.userSearchParams) {
+    throw new Error(
+      "Cannot update user, required params are not defined ",
+      userSearchParams,
+      userUpdateParams
+    );
   }
-  console.log(email);
+  const { email, userId } = userSearchParams;
+  if (!email && !userId) {
+    throw new Error(
+      "Cannot update user, email and userId are not defined ",
+      userSearchParams
+    );
+  }
   return mongoClient
     .db("covidBot")
     .collection("botUsers")
     .findOneAndUpdate(
       {
-        email,
+        $or: [
+          {
+            email,
+          },
+          {
+            userId,
+          },
+        ],
       },
       {
         $set: {
-          ...user,
+          ...userUpdateParams,
         },
       },
       {

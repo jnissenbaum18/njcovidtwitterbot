@@ -147,11 +147,13 @@ if (
     const newUser = await registerUser(email, password, phone);
 
     console.log(newUser);
-    if (newUser) {
+    if (newUser || true) {
+      //temporary override of user signup
       try {
         const mongoInsert = await createNewUser(mongoClient, item);
         res.send({
-          email: newUser,
+          // email: newUser,
+          email: item.email,
         });
       } catch (err) {
         var returnStatus = 500;
@@ -213,7 +215,7 @@ if (
       try {
         const userData = await findUserAndUpdate(
           mongoClient,
-          validToken.email,
+          { email: validToken.email },
           user
         );
         console.log("userData ", userData);
