@@ -231,6 +231,10 @@ if (
     }
   });
 
+  /* app.post("/email-unsubscribe", async function (req, res) {
+    const userId = req.params.userId;
+  }); */
+
   app.get("/test-message", async function (req, res) {
     if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
       /* const messageFilters = searchMessageForFilters(
@@ -258,7 +262,7 @@ if (
     try {
       mongoClient = await connectToClient();
       new Promise(async (resolve, reject) => {
-        // await streamInit(mongoClient);
+        await streamInit(mongoClient);
       });
     } catch (e) {
       console.error(e);
