@@ -13,7 +13,7 @@ async function connectToClient() {
     ),
   ];
   return new Promise((resolve, reject) => {
-    let clientString = `mongodb://${process.env.DOCUMENTDB_ADMIN_USERNAME}:${process.env.DOCUMENTDB_ADMIN_PASSWORD}@${process.env.DOCUMENTDB_HOST}:27017?ssl=true&replicaSet=rs0&readPreference=secondaryPreferred`;
+    let clientString = `mongodb://${process.env.DOCUMENTDB_ADMIN_USERNAME}:${process.env.DOCUMENTDB_ADMIN_PASSWORD}@${process.env.DOCUMENTDB_HOST}:27017?ssl=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`;
     let mongoOptions = {
       sslValidate: true,
       sslCA: ca,
