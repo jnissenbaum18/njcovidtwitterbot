@@ -217,6 +217,7 @@ if (
     console.log("valid token ", !!validToken);
     if (validToken) {
       try {
+        console.log("user ", user);
         const userData = await findUserAndUpdate(
           mongoClient,
           { email: validToken.email },
@@ -268,7 +269,10 @@ if (
     try {
       mongoClient = await connectToClient();
       new Promise(async (resolve, reject) => {
-        await streamInit(mongoClient);
+        if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
+        } else {
+          await streamInit(mongoClient);
+        }
       });
     } catch (e) {
       console.error(e);

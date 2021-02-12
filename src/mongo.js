@@ -101,7 +101,7 @@ async function findUserAndUpdate(
   userSearchParams,
   userUpdateParams
 ) {
-  if (!userUpdateParams || !user.userSearchParams) {
+  if (!userUpdateParams || !userSearchParams) {
     throw new Error(
       "Cannot update user, required params are not defined ",
       userSearchParams,
@@ -109,6 +109,7 @@ async function findUserAndUpdate(
     );
   }
   const { email, userId } = userSearchParams;
+  console.log(userSearchParams, userUpdateParams);
   if (!email && !userId) {
     throw new Error(
       "Cannot update user, email and userId are not defined ",
