@@ -6,6 +6,8 @@ const jwkToPem = require("jwk-to-pem");
 const jwt = require("jsonwebtoken");
 global.fetch = require("node-fetch");
 
+console.log("processenv ", process.env);
+
 const poolData = {
   UserPoolId: process.env.COGNITO_POOL_ID,
   ClientId: process.env.COGNITO_APP_CLIENT_ID,
