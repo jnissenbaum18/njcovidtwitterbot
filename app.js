@@ -140,11 +140,13 @@ if (
 
     if (loginUser) {
       //Not sure if ID token should be stored client side
-      res.status(409).end();
+      // res.status(409).end();
       return;
     }
-
-    const newUser = await registerUser(email, password, phone);
+    let newUser = null;
+    try {
+      newUser = await registerUser(email, password, phone);
+    } catch (e) {}
 
     console.log(newUser);
     if (newUser || true) {
