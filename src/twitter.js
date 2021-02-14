@@ -187,7 +187,7 @@ function streamConnect(mongoClient) {
           text
         );
         console.log("Send messages ", emails, phoneNumbers);
-        // sendMessages(text, emails, phoneNumbers);
+        sendMessages(text, emails, phoneNumbers);
       } catch (e) {
         const errMsg = String(e.message);
         if (errMsg.includes("Unexpected end of JSON input")) {
