@@ -139,10 +139,10 @@ async function getUsersForMessage(mongoClient, message) {
 function sendMessages(text, emails, phoneNumbers) {
   try {
     sendEmails(emails, text, "COVID Twitter Alert");
-    /* phoneNumbers.forEach((phone) => {
+    phoneNumbers.forEach((phone) => {
       console.log("Sending message to phone: ", phone);
       sendSMS(phone, text);
-    }); */
+    });
   } catch (e) {
     console.error(e);
   }

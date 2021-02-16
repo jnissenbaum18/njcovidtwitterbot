@@ -74,6 +74,8 @@ async function sendSMS(phoneNumber, message) {
     });
 }
 
+function createEmailBody(emailBody) {}
+
 module.exports = {
   sendEmails,
   sendSMS,

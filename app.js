@@ -243,7 +243,10 @@ if (
   }); */
 
   app.get("/test-message", async function (req, res) {
-    if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
+    if (
+      (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") ||
+      true
+    ) {
       /* const messageFilters = searchMessageForFilters(
         filters,
         "UNION ATLANTIC -- ".toLocaleLowerCase()
@@ -253,11 +256,11 @@ if (
       console.log(users);
        */
       // return;
-      // const emailStatus = sendEmails(
-      //   ["njcovidtwitterbot@gmail.com"],
-      //   "test email",
-      //   "test subject"
-      // );
+      const emailStatus = sendEmails(
+        ["jnissenbaum18@gmail.com"],
+        "test email",
+        "test subject"
+      );
       const smsStatus = sendSMS("+19083800715", "Test Message");
       res.send({});
     }
