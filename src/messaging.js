@@ -2,6 +2,8 @@ const AWS = require("aws-sdk");
 
 // Set the region
 AWS.config.update({ region: process.env.REGION });
+const SES = new AWS.SES({ apiVersion: "2010-12-01" });
+const SNS = new AWS.SNS({ apiVersion: "2010-03-31" });
 
 async function sendEmails(emailAddresses, emailBody, emailSubject) {
   var params = {
@@ -36,9 +38,7 @@ async function sendEmails(emailAddresses, emailBody, emailSubject) {
   };
 
   // Create the promise and SES service object
-  var sendPromise = new AWS.SES({ apiVersion: "2010-12-01" })
-    .sendEmail(params)
-    .promise();
+  var sendPromise = SES.sendEmail(params).promise();
 
   // Handle promise's fulfilled/rejected states
   return sendPromise
@@ -59,9 +59,7 @@ async function sendSMS(phoneNumber, message) {
   };
 
   // Create promise and SNS service object
-  var publishTextPromise = new AWS.SNS({ apiVersion: "2010-03-31" })
-    .publish(params)
-    .promise();
+  var publishTextPromise = SNS.publish(params).promise();
 
   // Handle promise's fulfilled/rejected states
   return publishTextPromise
