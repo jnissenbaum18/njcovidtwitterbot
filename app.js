@@ -11,6 +11,7 @@ const {
   findUserAndUpdate,
   findUsersForFilters,
 } = require("./src/mongo");
+const { inspect } = require("util");
 
 // Include the cluster module
 var cluster = require("cluster");
@@ -258,7 +259,9 @@ if (
       console.log(users);
        */
       // return;
-      const snsPromise = new Promise((resolve, reject) => {
+
+      console.log(inspect(SNS.publish));
+      /* const snsPromise = new Promise((resolve, reject) => {
         console.log(
           SNS.publish(
             {
@@ -275,7 +278,7 @@ if (
           )
         );
       });
-      console.log(await snsPromise);
+      console.log(await snsPromise); */
       // const emailStatus = sendEmails(
       //   SES,
       //   ["jnissenbaum18@gmail.com"],
@@ -295,7 +298,7 @@ if (
       new Promise(async (resolve, reject) => {
         if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
         } else {
-          await streamInit(mongoClient, SES, SNS);
+          // await streamInit(mongoClient, SES, SNS);
         }
       });
     } catch (e) {
