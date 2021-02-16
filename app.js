@@ -44,6 +44,8 @@ if (
   var bodyParser = require("body-parser");
 
   AWS.config.region = process.env.REGION;
+  const SES = new AWS.SES({ apiVersion: "2010-12-01" });
+  const SNS = new AWS.SNS({ apiVersion: "2010-03-31" });
   let mongoClient;
   var app = express();
 
@@ -256,12 +258,14 @@ if (
       console.log(users);
        */
       // return;
+      console.log(SES, SNS);
       const emailStatus = sendEmails(
+        SES,
         ["jnissenbaum18@gmail.com"],
         "test email",
         "test subject"
       );
-      const smsStatus = sendSMS("+19083800715", "Test Message");
+      const smsStatus = sendSMS(SNS, "+19083800715", "Test Message");
       res.send({});
     }
   });
@@ -274,7 +278,7 @@ if (
       new Promise(async (resolve, reject) => {
         if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
         } else {
-          await streamInit(mongoClient);
+          await streamInit(mongoClient, SES, SNS);
         }
       });
     } catch (e) {

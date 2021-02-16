@@ -2,10 +2,8 @@ const AWS = require("aws-sdk");
 
 // Set the region
 AWS.config.update({ region: process.env.REGION });
-const SES = new AWS.SES({ apiVersion: "2010-12-01" });
-const SNS = new AWS.SNS({ apiVersion: "2010-03-31" });
 
-async function sendEmails(emailAddresses, emailBody, emailSubject) {
+async function sendEmails(SES, emailAddresses, emailBody, emailSubject) {
   var params = {
     Destination: {
       BccAddresses: [...emailAddresses],
@@ -51,7 +49,7 @@ async function sendEmails(emailAddresses, emailBody, emailSubject) {
     });
 }
 
-async function sendSMS(phoneNumber, message) {
+async function sendSMS(SNS, phoneNumber, message) {
   // Create publish parameters
   var params = {
     Message: message /* required */,

@@ -136,19 +136,19 @@ async function getUsersForMessage(mongoClient, message) {
   };
 }
 
-function sendMessages(text, emails, phoneNumbers) {
+function sendMessages(SES, SNS, text, emails, phoneNumbers) {
   try {
-    sendEmails(emails, text, "COVID Twitter Alert");
+    sendEmails(SES, emails, text, "COVID Twitter Alert");
     phoneNumbers.forEach((phone) => {
       console.log("Sending message to phone: ", phone);
-      sendSMS(phone, text);
+      sendSMS(SNS, phone, text);
     });
   } catch (e) {
     console.error(e);
   }
 }
 
-function streamConnect(mongoClient) {
+function streamConnect(mongoClient, SES, SNS) {
   //Listen to the stream
   const options = {
     timeout: 20000,
@@ -187,7 +187,7 @@ function streamConnect(mongoClient) {
           text
         );
         console.log("Send messages ", emails, phoneNumbers);
-        sendMessages(text, emails, phoneNumbers);
+        sendMessages(SES, SNS, text, emails, phoneNumbers);
       } catch (e) {
         const errMsg = String(e.message);
         if (errMsg.includes("Unexpected end of JSON input")) {
@@ -209,7 +209,7 @@ function streamConnect(mongoClient) {
 
 let filteredStream = null;
 
-async function streamInit(mongoClient) {
+async function streamInit(mongoClient, SES, SNS) {
   console.log("Initiating stream");
   let currentRules;
   try {
@@ -231,7 +231,7 @@ async function streamInit(mongoClient) {
   // To avoid rate limites, this logic implements exponential backoff, so the wait time
   // will increase if the client cannot reconnect to the stream.
   if (!filteredStream) {
-    filteredStream = streamConnect(mongoClient);
+    filteredStream = streamConnect(mongoClient, SES, SNS);
   }
   let timeout = 0;
   filteredStream.on("timeout", () => {
@@ -239,9 +239,9 @@ async function streamInit(mongoClient) {
     console.warn("A connection error occurred. Reconnecting…");
     setTimeout(() => {
       timeout++;
-      streamConnect(mongoClient);
+      streamConnect(mongoClient, SES, SNS);
     }, 2 ** timeout);
-    streamConnect(mongoClient);
+    streamConnect(mongoClient, SES, SNS);
   });
 }
 
