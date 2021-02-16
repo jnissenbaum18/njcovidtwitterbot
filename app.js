@@ -45,7 +45,7 @@ if (
 
   AWS.config.region = process.env.REGION;
   const SES = new AWS.SES({ apiVersion: "2010-12-01" });
-  const SNS = new AWS.SNS({ apiVersion: "2010-03-31" });
+  const SNS = new AWS.SNS();
   let mongoClient;
   var app = express();
 
