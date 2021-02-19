@@ -207,6 +207,8 @@ const handleEmailResponse = async (SNS, responseType, req, res) => {
     );
   }
 
+  console.log("amz-sns-header ", req.headers["x-amz-sns-message-type"]);
+
   if (
     req.headers["x-amz-sns-message-type"] === "Notification" &&
     req.body.Message
@@ -219,6 +221,7 @@ const handleEmailResponse = async (SNS, responseType, req, res) => {
       Token: req.body.Token,
       TopicArn: topicArn,
     };
+    console.log("Attempting to subscribe to topic ", params);
     SNS.confirmSubscription(params, function (err, data) {
       if (err) throw err; // an error occurred
       console.error(data);
