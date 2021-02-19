@@ -353,7 +353,7 @@ if (
 
   var server = app.listen(port, async function () {
     try {
-      //mongoClient = await connectToClient();
+      mongoClient = await connectToClient();
       new Promise(async (resolve, reject) => {
         await SNSInit(SNS);
         if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
