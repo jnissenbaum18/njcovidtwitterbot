@@ -191,7 +191,7 @@ const handleSnsNotification = async (req, res) => {
 };
 
 const handleEmailResponse = async (SNS, responseType, req, res) => {
-  const topicArn = null;
+  let topicArn = null;
 
   if (responseType === "Bounce") {
     topicArn = topicArnBounce;
