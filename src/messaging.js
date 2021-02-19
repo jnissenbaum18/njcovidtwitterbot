@@ -1,6 +1,6 @@
 const AWS = require("aws-sdk");
 const { searchMessageForFilters } = require("./utils");
-const { findUsersForFilters } = require("./mongo");
+const { findUsersForFilters, findUserAndUpdate } = require("./mongo");
 
 // Set the region
 AWS.config.update({ region: process.env.REGION });
@@ -162,7 +162,7 @@ function createUnsubscribeLink(user) {
   return `https://www.covidvaxalerts.com/email-unsubscribe?userId=${user.userId}`;
 }
 
-const handleSnsNotification = async (req, res) => {
+const handleSnsNotification = async (mongoClient, req, res) => {
   const message = JSON.parse(req.body.Message);
   console.log("SNS message, ", message);
   if (
@@ -175,13 +175,14 @@ const handleSnsNotification = async (req, res) => {
         const address = mail.destination[i];
 
         try {
-          /* const user = await User.findOne({ email: address }).exec();
-
-          if (!user) continue;
-          user.emailError = true;
-          user.emailErrorDescription = message.notificationType;
-
-          await user.save(); */
+          await findUserAndUpdate(
+            mongoClient,
+            { email: address },
+            {
+              emailEnabled: false,
+              lastMessage: req.body.Message,
+            }
+          );
         } catch (error) {
           console.error(error.message);
         }
@@ -190,7 +191,13 @@ const handleSnsNotification = async (req, res) => {
   }
 };
 
-const handleEmailResponse = async (SNS, responseType, req, res) => {
+const handleEmailResponse = async (
+  SNS,
+  mongoClient,
+  responseType,
+  req,
+  res
+) => {
   let topicArn = null;
 
   if (responseType === "Bounce") {
@@ -213,7 +220,7 @@ const handleEmailResponse = async (SNS, responseType, req, res) => {
     req.headers["x-amz-sns-message-type"] === "Notification" &&
     req.body.Message
   ) {
-    await handleSnsNotification(req, res);
+    await handleSnsNotification(mongoClient, req, res);
   } else if (
     req.headers["x-amz-sns-message-type"] === "SubscriptionConfirmation"
   ) {
@@ -229,6 +236,7 @@ const handleEmailResponse = async (SNS, responseType, req, res) => {
   }
 };
 
+//https://medium.com/@serbanmihai/how-to-handle-aws-ses-bounces-and-complaints-53d6e7455443
 async function SNSInit(SNS) {
   SNS.subscribe(paramsTopicBounces, function (error, data) {
     if (error) throw new Error(`Unable to set up SNS subscription: ${error}`);

@@ -318,9 +318,9 @@ if (
   });
 
   app.post("/aws/sns/handle-bounces", async function (req, res) {
-    console.log("SNS Bounce: ", req.body.Message, req.body.Token);
+    console.log("SNS Bounce: ", req.body.Message);
     try {
-      await handleEmailResponse(SNS, "Bounce", req, res);
+      await handleEmailResponse(SNS, mongoClient, "Bounce", req, res);
 
       res.status(200).json({
         success: true,
@@ -335,9 +335,9 @@ if (
   });
 
   app.post("/aws/sns/handle-complaints", async function (req, res) {
-    console.log("SNS Complaints: ", req.body.Message, req.body.Token);
+    console.log("SNS Complaints: ", req.body.Message);
     try {
-      handleEmailResponse(SNS, "Complaint", req, res);
+      handleEmailResponse(SNS, mongoClient, "Complaint", req, res);
 
       res.status(200).json({
         success: true,

@@ -142,8 +142,6 @@ async function findUserAndUpdate(
     .catch((error) => console.error(error));
 }
 
-async function handleUserBounceOrComplaint(mongoClient, email) {}
-
 async function findUsersForFilters(mongoClient, filters) {
   return mongoClient
     .db("covidBot")
