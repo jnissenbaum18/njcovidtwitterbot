@@ -317,7 +317,7 @@ if (
     }
   });
 
-  app.post("aws/sns/handle-bounces", async function (req, res) {
+  app.post("/aws/sns/handle-bounces", async function (req, res) {
     try {
       await handleEmailResponse(SNS, "Bounce", req, res);
 
@@ -333,7 +333,7 @@ if (
     }
   });
 
-  app.post("aws/sns/handle-complaints", async function (req, res) {
+  app.post("/aws/sns/handle-complaints", async function (req, res) {
     try {
       handleEmailResponse(SNS, "Complaint", req, res);
 
@@ -353,8 +353,8 @@ if (
 
   var server = app.listen(port, async function () {
     try {
-      mongoClient = await connectToClient();
       new Promise(async (resolve, reject) => {
+        mongoClient = await connectToClient();
         await SNSInit(SNS);
         if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
         } else {
