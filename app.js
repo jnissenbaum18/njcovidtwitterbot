@@ -317,7 +317,7 @@ if (
     }
   });
 
-  app.post("/sns/handle-bounces", async function (req, res) {
+  app.post("aws/sns/handle-bounces", async function (req, res) {
     try {
       await handleEmailResponse(SNS, "Bounce", req, res);
 
@@ -333,7 +333,7 @@ if (
     }
   });
 
-  app.post("/sns/handle-complaints", async function (req, res) {
+  app.post("aws/sns/handle-complaints", async function (req, res) {
     try {
       handleEmailResponse(SNS, "Complaint", req, res);
 
