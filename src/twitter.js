@@ -1,8 +1,6 @@
 const needle = require("needle");
 const dotenv = require("dotenv").config();
-const { searchMessageForFilters } = require("./utils");
-const { findUsersForFilters } = require("./mongo");
-const { sendEmails, sendSMS } = require("./messaging");
+const { sendMessages } = require("./messaging");
 
 const rulesURL = "https://api.twitter.com/2/tweets/search/stream/rules";
 const streamURL = "https://api.twitter.com/2/tweets/search/stream";
@@ -15,35 +13,6 @@ const rules = [
   { value: "from:turbovax -is:reply", tag: "ny updates" },
   // { value: "dog has:images -is:retweet", tag: "dog pictures" },
   // { value: "cat has:images -grumpy", tag: "cat pictures" },
-];
-
-const messageFilters = [
-  "Atlantic",
-  "Bergen",
-  "Burlington",
-  "Camden",
-  "Cape",
-  "Cumberland",
-  "Essex",
-  "Gloucester",
-  "Hudson",
-  "Hunterdon",
-  "Mercer",
-  "Middlesex",
-  "Monmouth",
-  "Morris",
-  "Ocean",
-  "Passaic",
-  "Salem",
-  "Somerset",
-  "Sussex",
-  "Union",
-  "Warren",
-  "Bronx",
-  "Brooklyn",
-  "Manhattan",
-  "Queens",
-  "Staten Island",
 ];
 
 async function getAllRules() {
@@ -107,47 +76,6 @@ async function setRules() {
   return response.body;
 }
 
-async function getUsersForMessage(mongoClient, message) {
-  const foundFilters = searchMessageForFilters(
-    messageFilters,
-    message.toLocaleLowerCase()
-  );
-  const users = await findUsersForFilters(mongoClient, foundFilters);
-  console.log(users.length);
-  const emails = users
-    .map(({ email, emailEnabled }) => {
-      if (emailEnabled) {
-        return email;
-      }
-      return null;
-    })
-    .filter((email) => email);
-  const phoneNumbers = users
-    .map(({ phone, phoneEnabled }) => {
-      if (phoneEnabled) {
-        return phone;
-      }
-      return null;
-    })
-    .filter((phone) => phone);
-  return {
-    emails,
-    phoneNumbers,
-  };
-}
-
-function sendMessages(SES, SNS, text, emails, phoneNumbers) {
-  try {
-    sendEmails(SES, emails, text, "COVID Twitter Alert");
-    phoneNumbers.forEach((phone) => {
-      console.log("Sending message to phone: ", phone);
-      sendSMS(SNS, phone, text);
-    });
-  } catch (e) {
-    console.error(e);
-  }
-}
-
 function streamConnect(mongoClient, SES, SNS) {
   //Listen to the stream
   const options = {
@@ -182,12 +110,7 @@ function streamConnect(mongoClient, SES, SNS) {
         const json = JSON.parse(data);
         console.log(json);
         const text = json.data.text;
-        const { emails, phoneNumbers } = await getUsersForMessage(
-          mongoClient,
-          text
-        );
-        console.log("Send messages ", emails, phoneNumbers);
-        sendMessages(SES, SNS, text, emails, phoneNumbers);
+        sendMessages(SES, SNS, mongoClient, text);
       } catch (e) {
         const errMsg = String(e.message);
         if (errMsg.includes("Unexpected end of JSON input")) {

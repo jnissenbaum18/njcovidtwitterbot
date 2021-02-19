@@ -9,7 +9,6 @@ function formatPhoneNumber(phoneNumberString) {
 }
 
 function searchMessageForFilters(filters, string) {
-  console.log(filters, string);
   return filters.filter((filter) => string.includes(filter.toLowerCase()));
 }
 

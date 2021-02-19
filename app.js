@@ -1,7 +1,11 @@
 const { streamInit } = require("./src/twitter");
 const dotenv = require("dotenv").config();
 const { registerUser, login, validateToken } = require("./src/auth");
-const { sendEmails, sendSMS } = require("./src/messaging");
+const {
+  sendMessages,
+  handleEmailResponse,
+  SNSInit,
+} = require("./src/messaging");
 const { formatPhoneNumber, searchMessageForFilters } = require("./src/utils");
 const {
   connectToClient,
@@ -17,7 +21,6 @@ const { inspect } = require("util");
 var cluster = require("cluster");
 
 // Code to run if we're in the master process
-
 if (
   cluster.isMaster &&
   !process.env.ENVIRONMENT &&
@@ -54,6 +57,16 @@ if (
   app.set("views", __dirname + "/views");
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(express.static("public"));
+
+  app.use(function (req, res, next) {
+    if (req.get("x-amz-sns-message-type")) {
+      req.headers["content-type"] = "application/json"; //IMPORTANT, otherwise content-type is text for topic confirmation reponse, and body is empty
+    }
+    next();
+  });
+
+  // Load body parser to handle POST requests
+  app.use(bodyParser.json());
 
   app.get("/", function (req, res) {
     res.render("index", {
@@ -241,9 +254,41 @@ if (
     }
   });
 
-  /* app.post("/email-unsubscribe", async function (req, res) {
-    const userId = req.params.userId;
-  }); */
+  app.get("/email-unsubscribe", async function (req, res) {
+    console.log(req.url);
+    console.log(req.query);
+    const userId = req.query.userId;
+    if (!userId) {
+      console.error(
+        "Could not unsubscribe user, userId not provided ",
+        userId,
+        req.url
+      );
+      var returnStatus = 500;
+
+      res.status(returnStatus).end();
+      return;
+    }
+    try {
+      const userData = await findUserAndUpdate(
+        mongoClient,
+        { userId },
+        {
+          emailEnabled: false,
+        }
+      );
+      if (userData.lastErrorObject.updatedExisting) {
+        res.send({
+          success: true,
+        });
+      }
+    } catch (err) {
+      var returnStatus = 500;
+
+      res.status(returnStatus).end();
+      console.log("Mongo API Error: " + err);
+    }
+  });
 
   app.get("/test-message", async function (req, res) {
     if (
@@ -260,25 +305,7 @@ if (
        */
       // return;
 
-      console.log(inspect(SNS.publish));
-      /* const snsPromise = new Promise((resolve, reject) => {
-        console.log(
-          SNS.publish(
-            {
-              Message: "Test Message",
-              PhoneNumber: "+19083800715",
-            },
-            function (err, data) {
-              if (err) {
-                console.log(err, err.stack);
-                reject(err.stack);
-              } // an error occurred
-              else resolve(data); // successful response
-            }
-          )
-        );
-      });
-      console.log(await snsPromise); */
+      sendMessages(SES, SNS, mongoClient, "Cat test");
       // const emailStatus = sendEmails(
       //   SES,
       //   ["jnissenbaum18@gmail.com"],
@@ -290,12 +317,45 @@ if (
     }
   });
 
+  app.post("/sns/handle-bounces", async function (req, res) {
+    try {
+      await handleEmailResponse(SNS, "Bounce", req, res);
+
+      res.status(200).json({
+        success: true,
+        message: "Successfully received message",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  });
+
+  app.post("/sns/handle-complaints", async function (req, res) {
+    try {
+      handleEmailResponse(SNS, "Complaint", req, res);
+
+      res.status(200).json({
+        success: true,
+        message: "Successfully received message.",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  });
+
   var port = process.env.PORT || 3000;
 
   var server = app.listen(port, async function () {
     try {
-      mongoClient = await connectToClient();
+      //mongoClient = await connectToClient();
       new Promise(async (resolve, reject) => {
+        await SNSInit(SNS);
         if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
         } else {
           // await streamInit(mongoClient, SES, SNS);
