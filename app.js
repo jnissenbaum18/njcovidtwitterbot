@@ -318,6 +318,7 @@ if (
   });
 
   app.post("/aws/sns/handle-bounces", async function (req, res) {
+    console.log("SNS Bounce: ", req.body.Message, req.body.Token);
     try {
       await handleEmailResponse(SNS, "Bounce", req, res);
 
@@ -334,6 +335,7 @@ if (
   });
 
   app.post("/aws/sns/handle-complaints", async function (req, res) {
+    console.log("SNS Complaints: ", req.body.Message, req.body.Token);
     try {
       handleEmailResponse(SNS, "Complaint", req, res);
 
