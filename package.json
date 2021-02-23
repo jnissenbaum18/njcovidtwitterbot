@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@sendgrid/mail": "^7.4.2",
     "amazon-cognito-identity-js": "^4.5.8",
     "aws-sdk": "^2.834.0",
     "body-parser": "latest",

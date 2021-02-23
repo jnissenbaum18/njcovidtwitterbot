@@ -305,7 +305,7 @@ if (
        */
       // return;
 
-      sendMessages(SES, SNS, mongoClient, "Cat test");
+      sendMessages(SNS, mongoClient, "Cat test");
       // const emailStatus = sendEmails(
       //   SES,
       //   ["jnissenbaum18@gmail.com"],
@@ -357,9 +357,9 @@ if (
     try {
       new Promise(async (resolve, reject) => {
         mongoClient = await connectToClient();
-        await SNSInit(SNS);
         if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
         } else {
+          await SNSInit(SNS);
           // await streamInit(mongoClient, SES, SNS);
         }
       });

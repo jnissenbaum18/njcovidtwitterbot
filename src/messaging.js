@@ -1,6 +1,7 @@
 const AWS = require("aws-sdk");
 const { searchMessageForFilters } = require("./utils");
 const { findUsersForFilters, findUserAndUpdate } = require("./mongo");
+const sgMail = require("@sendgrid/mail");
 
 // Set the region
 AWS.config.update({ region: process.env.REGION });
@@ -49,7 +50,25 @@ const messageFilters = [
   "Cat",
 ];
 
-async function sendEmail(SES, emailAddress, emailBody, emailSubject) {
+async function sendEmailSendGrid(emailAddress, emailBody, emailSubject) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const msg = {
+    to: emailAddress, // Change to your recipient
+    from: "alerts@covidvaxalerts.com", // Change to your verified sender
+    subject: emailSubject,
+    text: emailBody,
+  };
+  sgMail
+    .send(msg)
+    .then(() => {
+      console.log("Email sent");
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
+async function sendEmailSES(SES, emailAddress, emailBody, emailSubject) {
   var params = {
     Destination: {
       /* required */
@@ -126,18 +145,17 @@ async function getUsersForMessage(mongoClient, message) {
   return users;
 }
 
-async function sendMessages(SES, SNS, mongoClient, text) {
+async function sendMessages(SNS, mongoClient, text) {
   try {
     const users = await getUsersForMessage(mongoClient, text);
     users.forEach((user) => {
       if (user.emailEnabled) {
-        console.log(`Sending email to: ${user.email}`);
-        sendEmail(
-          SES,
+        sendEmailSendGrid(
           user.email,
           createEmailBody(text, user),
           "COVID Twitter Alert"
         );
+        console.log(`Sending email to: ${user.email}`);
       }
       if (user.phoneEnabled) {
         //console.log("Sending message to phone: ", user.phone);
