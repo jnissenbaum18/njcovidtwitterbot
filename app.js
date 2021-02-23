@@ -360,7 +360,7 @@ if (
         if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
         } else {
           await SNSInit(SNS);
-          // await streamInit(mongoClient, SES, SNS);
+          await streamInit(mongoClient, SES, SNS);
         }
       });
     } catch (e) {

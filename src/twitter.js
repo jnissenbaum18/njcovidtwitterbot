@@ -110,7 +110,7 @@ function streamConnect(mongoClient, SES, SNS) {
         const json = JSON.parse(data);
         console.log(json);
         const text = json.data.text;
-        sendMessages(SES, SNS, mongoClient, text);
+        sendMessages(SNS, mongoClient, text);
       } catch (e) {
         const errMsg = String(e.message);
         if (errMsg.includes("Unexpected end of JSON input")) {
