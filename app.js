@@ -278,9 +278,7 @@ if (
         }
       );
       if (userData.lastErrorObject.updatedExisting) {
-        res.send({
-          success: true,
-        });
+        res.send(`Successfully unsubscribed from email alerts`);
       }
     } catch (err) {
       var returnStatus = 500;

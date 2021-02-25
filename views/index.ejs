@@ -6,7 +6,7 @@
     <meta name="description" content="" />
     <meta name="author" content="" />
 
-    <title>NJ COVID Twitter Bot!</title>
+    <title>COVID Vaccine Alerts</title>
 
     <!-- Bootstrap core CSS -->
     <link
@@ -33,6 +33,7 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.min.js"></script>
 
     <!-- Custom styles for this template -->
     <!-- <link href="<%= static_path + "/bootstrap/css/jumbotron-narrow.css" %>" rel="stylesheet"> -->
@@ -183,21 +184,19 @@
               </button>
             </div>
             <div class="modal-body">
-              <form id="signupForm" role="form">
-                <input
-                  type="hidden"
-                  id="theme"
-                  name="theme"
-                  value="<%= theme %>"
-                />
+              <form id="signup-form" role="form">
                 <div class="form-group">
-                  <label for="email">Email address</label>
+                  <label for="email"
+                    >Email address
+                    <span style="color: red">(required)</span></label
+                  >
                   <input
                     type="email"
                     class="form-control"
                     id="signup-email"
                     name="email"
                     placeholder="Your email address"
+                    required
                   />
                 </div>
                 <div class="form-group form-check">
@@ -208,11 +207,13 @@
                     name="emailEnabled"
                   />
                   <label for="email-enabled" class="form-check-label"
-                    >Email Alerts Enabled?</label
+                    >Check to receive alerts by email</label
                   >
                 </div>
                 <div class="form-group">
-                  <label for="phone">Mobile phone</label>
+                  <label for="phone"
+                    >Mobile phone (In the format of: XXXYYYZZZZ)</label
+                  >
                   <input
                     type="phone"
                     class="form-control"
@@ -229,11 +230,12 @@
                     name="phoneEnabled"
                   />
                   <label for="phone-enabled" class="form-check-label"
-                    >Phone Alerts Enabled?</label
+                    >Check to receive alerts by text message</label
                   >
                 </div>
                 <label for="signup-filters" class="form-check-label"
-                  >Tweet Filters</label
+                  >Select which area you wish to receive alerts for
+                  <span style="color: red">(required)</span></label
                 >
                 <select
                   id="signup-filters"
@@ -241,6 +243,7 @@
                   class="selectpicker"
                   multiple
                   data-live-search="true"
+                  required
                 >
                   <option value="All">All</option>
                   <option value="Atlantic">Atlantic</option>
@@ -271,13 +274,18 @@
                   <option value="Staten Island">Staten Island</option>
                 </select>
                 <div class="form-group">
-                  <label for="password">Password</label>
+                  <label for="password"
+                    >Password (8 Character Minimum)
+                    <span style="color: red">(required)</span></label
+                  >
                   <input
                     type="password"
                     class="form-control"
                     id="signup-password"
                     name="password"
                     placeholder="Your password"
+                    required
+                    minlength="8"
                   />
                 </div>
               </form>
@@ -336,7 +344,7 @@
                     name="emailEnabled"
                   />
                   <label for="email-enabled" class="form-check-label"
-                    >Email Alerts Enabled?</label
+                    >Check to receive alerts by email</label
                   >
                 </div>
                 <div class="form-group">
@@ -357,12 +365,12 @@
                     name="phoneEnabled"
                   />
                   <label for="phone-enabled" class="form-check-label"
-                    >Phone Alerts Enabled?</label
+                    >Check to receive alerts by text message</label
                   >
                 </div>
                 <label for="account-filters" class="form-check-label"
-                  >Tweet Filters</label
-                >
+                  >Select which area you wish to receive alerts for
+                </label>
                 <select
                   id="account-filters"
                   multiple="multiple"
@@ -525,6 +533,27 @@
           refreshToken = Cookies.get("refreshToken");
           userEmail = Cookies.get("userEmail");
 
+          $("#signup-form").validate({
+            rules: {
+              "signup-email": {
+                required: true,
+                minlength: 10,
+              },
+              "signup-password": {
+                required: true,
+                minlength: 8,
+              },
+            },
+            messages: {
+              "signup-email": {
+                required: "test",
+              },
+              "signup-password": {
+                minlength: "Password must be at least 8 characters long",
+              },
+            },
+          });
+
           $.post("/validate-token", { idToken }, function (data) {
             if (data.isValid) {
               $("#nav-is-logged-in")
@@ -549,10 +578,11 @@
         });
 
         $("#signup").click(function () {
-          var signupData = $("#signupForm").serialize();
+          var signupData = $("#signup-form").serialize();
           signupData +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#signup-filters").val()));
+          return;
           $.post("/signup", signupData, function (data) {
             if (data.accessToken) {
               Cookies.set("accessToken", data.accessToken);

@@ -56,7 +56,8 @@ async function sendEmailSendGrid(emailAddress, emailBody, emailSubject) {
     to: emailAddress, // Change to your recipient
     from: "alerts@covidvaxalerts.com", // Change to your verified sender
     subject: emailSubject,
-    text: emailBody,
+    // text: emailBody,
+    html: emailBody,
   };
   sgMail
     .send(msg)
@@ -141,7 +142,7 @@ async function getUsersForMessage(mongoClient, message) {
   );
   console.log("Found filters for message ", foundFilters);
   const users = await findUsersForFilters(mongoClient, foundFilters);
-  console.log("Found users for filters ", users.length);
+  console.log("Found users for filters ", users);
   return users;
 }
 
@@ -150,12 +151,12 @@ async function sendMessages(SNS, mongoClient, text) {
     const users = await getUsersForMessage(mongoClient, text);
     users.forEach((user) => {
       if (user.emailEnabled) {
+        console.log(`Sending email to: ${user.email}`);
         sendEmailSendGrid(
           user.email,
           createEmailBody(text, user),
           "COVID Twitter Alert"
         );
-        console.log(`Sending email to: ${user.email}`);
       }
       if (user.phoneEnabled) {
         //console.log("Sending message to phone: ", user.phone);
@@ -168,11 +169,16 @@ async function sendMessages(SNS, mongoClient, text) {
 }
 
 function createEmailBody(emailBody, user) {
-  return `Covid Alert Message:
-
+  return `<div>
+  <strong>Covid Alert Message:</strong>
+  <br/>
     ${emailBody}
   
-  Click to unsubscribe from email alerts: ${createUnsubscribeLink(user)}
+  <hr/>
+  Click to unsubscribe from email alerts: <a href="${createUnsubscribeLink(
+    user
+  )}">unsubscribe</a>
+  </div>
   `;
 }
 
