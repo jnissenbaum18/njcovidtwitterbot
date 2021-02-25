@@ -582,7 +582,6 @@
           signupData +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#signup-filters").val()));
-          return;
           $.post("/signup", signupData, function (data) {
             if (data.accessToken) {
               Cookies.set("accessToken", data.accessToken);
