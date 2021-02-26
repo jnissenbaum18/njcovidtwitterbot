@@ -358,6 +358,9 @@
               </form>
             </div>
             <div class="modal-footer">
+              <span id="signup-loading" style="display:none;">
+                Loading...
+              </span>
               <button id="signup" type="button" class="btn btn-primary">
                 Sign Up!
               </button>
@@ -564,6 +567,9 @@
               <button id="login" type="button" class="btn btn-primary">
                 Login
               </button>
+              <span id="login-loading" style="display:none;">
+                Loading...
+              </span>
               <button id="loginToSignup" type="button" class="btn btn-info">
                 Signup
               </button>
@@ -669,11 +675,15 @@
           signupData +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#signup-filters").val()));
+            $("#signup").hide()
+            $("#signup-loading").show()
           $.post("/signup", signupData, function (data) {
             $("#loginModal").modal("hide");
             $("#signupSuccess").show();
           })
             .error(function (xhr) {
+              $("#signup").show()
+              $("#signup-loading").hide()
               switch (xhr.status) {
                 case 409:
                   $("#signupDuplicate").show();
@@ -687,7 +697,11 @@
             });
         });
         $("#login").click(function () {
+          $("#login").hide()
+          $("#login-loading").show()
           $.post("/login", $("#loginForm").serialize(), function (data) {
+            $("#login").show()
+            $("#login-loading").hide()
             if (data.idToken && data.accessToken && data.refreshToken) {
               Cookies.set("accessToken", data.accessToken);
               Cookies.set("refreshToken", data.refreshToken);
@@ -708,6 +722,8 @@
               $("#loggedin-jumbotron").show();
             }
           }).error(function (xhr) {
+            $("#login").show()
+            $("#login-loading").hide()
             console.log(xhr.status);
             switch (xhr.status) {
               case 401:
