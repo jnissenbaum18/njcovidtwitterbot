@@ -46,30 +46,42 @@
           <div class="navbar-collapse">
             <ul class="navbar-nav mr-auto">
               <li class="nav-item">
-                <a id="register" class="nav-link" href="#">Register</a>
+                <a id="nav-register" class="nav-link" href="#">Register</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" data-toggle="modal" href="#loginModal"
+                <a
+                  id="nav-login"
+                  class="nav-link"
+                  data-toggle="modal"
+                  href="#loginModal"
                   >Login</a
                 >
               </li>
               <li class="nav-item">
                 <a
+                  style="display: none"
                   class="nav-link"
-                  id="account"
+                  id="nav-account"
                   data-toggle="modal"
                   href="#accountModal"
                   >Account</a
                 >
               </li>
             </ul>
-            <span
-              id="nav-is-logged-in"
-              style="display: none"
-              class="navbar-text"
-            >
+            <span id="nav-is-logged-in" class="navbar-text">
               Not logged in
             </span>
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a
+                  style="display: none"
+                  class="nav-link"
+                  id="nav-logout"
+                  href="#"
+                  >Logout</a
+                >
+              </li>
+            </ul>
           </div>
         </nav>
 
@@ -81,7 +93,11 @@
       </div>
       <% } %>
       <div id="signupSuccess" class="alert alert-success" style="display: none">
-        <p id="signupSuccessText">Thanks for registering!</p>
+        <p id="signupSuccessText">
+          Thanks for registering! You will automatically receive vaccine alerts
+          from our service now. Please check your email for a confirmation link
+          to complete registration.
+        </p>
       </div>
       <div
         id="signupDuplicate"
@@ -94,7 +110,8 @@
         <p id="signupErrorText">
           Looks like we're having trouble signing you up. Please send an email
           to
-          <a href="mailto:njcovidtwitterbot.com">njcovidtwitterbot@gmail.com</a
+          <a href="mailto:feedback@covidvaxalerts.com"
+            >feedback@covidvaxalerts.com</a
           >.
         </p>
       </div>
@@ -138,7 +155,9 @@
         <p>
           If you are aware of more sources of appointment information or
           encounter problems with the website, please email
-          <a href="mailto:njcovidtwitterbot.com">njcovidtwitterbot@gmail.com</a>
+          <a href="mailto:feedback@covidvaxalerts.com"
+            >feedback@covidvaxalerts.com</a
+          >
           and we'll get to work on it!
         </p>
         <p>
@@ -155,7 +174,9 @@
         <p>&copy;COVID Vaccine Alert Bot</p>
         <p>
           Need help or run into an issue? Please email:
-          <a href="mailto:njcovidtwitterbot.com">njcovidtwitterbot@gmail.com</a>
+          <a href="mailto:feedback@covidvaxalerts.com"
+            >feedback@covidvaxalerts.com</a
+          >
         </p>
       </div>
 
@@ -559,6 +580,10 @@
               $("#nav-is-logged-in")
                 .text("Logged in as: " + userEmail)
                 .show();
+              $("#nav-account").show();
+              $("#nav-logout").show();
+              $("#nav-register").hide();
+              $("#nav-login").hide();
             } else {
               $("#loginModal").modal("show");
             }
@@ -572,7 +597,7 @@
           $("#signupModal").modal("show");
         });
 
-        $("#register").click(function () {
+        $("#nav-register").click(function () {
           $("#loginModal").modal("hide");
           $("#signupModal").modal("show");
         });
@@ -582,31 +607,10 @@
           signupData +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#signup-filters").val()));
+          console.log(signupData);
           $.post("/signup", signupData, function (data) {
-            if (data.accessToken) {
-              Cookies.set("accessToken", data.accessToken);
-            }
-            if (data.refreshToken) {
-              Cookies.set("refreshToken", data.refreshToken);
-            }
-            if (data.idToken) {
-              Cookies.set("idToken", data.idToken);
-            }
-            if (data.userEmail) {
-              Cookies.set("userEmail", data.email);
-              $("#nav-is-logged-in")
-                .text("Logged in as: " + data.email)
-                .show();
-              $("#loginModal").modal("hide");
-            } else if (data.email) {
-              Cookies.set("userEmail", data.email);
-
-              $("#nav-is-logged-in")
-                .text("Logged in as: " + data.email)
-                .show();
-              $("#loginModal").modal("hide");
-              $("#signupSuccess").show();
-            }
+            $("#loginModal").modal("hide");
+            $("#signupSuccess").show();
           })
             .error(function (xhr) {
               switch (xhr.status) {
@@ -623,7 +627,6 @@
         });
         $("#login").click(function () {
           $.post("/login", $("#loginForm").serialize(), function (data) {
-            console.log("account data: ", data);
             if (data.idToken && data.accessToken && data.refreshToken) {
               Cookies.set("accessToken", data.accessToken);
               Cookies.set("refreshToken", data.refreshToken);
@@ -633,6 +636,10 @@
               $("#nav-is-logged-in")
                 .text("Logged in as: " + data.email)
                 .show();
+              $("#nav-account").show();
+              $("#nav-logout").show();
+              $("#nav-register").hide();
+              $("#nav-login").hide();
             }
           }).error(function (xhr) {
             console.log(xhr.status);
@@ -646,6 +653,17 @@
           });
         }),
           "json";
+        $("#nav-logout").click(function () {
+          Cookies.remove("accessToken");
+          Cookies.remove("refreshToken");
+          Cookies.remove("idToken");
+          Cookies.remove("userEmail");
+          $("#nav-is-logged-in").hide();
+          $("#nav-account").hide();
+          $("#nav-logout").hide();
+          $("#nav-register").show();
+          $("#nav-login").show();
+        });
 
         $("#account-update").click(function () {
           var data = $("#accountForm").serialize();
@@ -660,7 +678,7 @@
           });
         });
 
-        $("#account").click(function () {
+        $("#nav-account").click(function () {
           console.log("get acct");
           var acctIdToken = Cookies.get("idToken");
           if (!acctIdToken) {
@@ -673,7 +691,6 @@
               idToken: acctIdToken,
             },
             function (data) {
-              console.log("account data: ", data);
               if (data) {
                 if (data.email) {
                   $("#account-email").val(data.email);

@@ -140,8 +140,14 @@ if (
     const emailEnabled = req.body.emailEnabled === "on";
     const phone = formatPhoneNumber(req.body.phone);
     const phoneEnabled = req.body.phoneEnabled === "on";
-    const filters = req.body.filters;
     const password = req.body.password;
+    let filters = [];
+    try {
+      filters = JSON.parse(req.body.filters);
+      console.log("filters ", filters);
+    } catch (e) {
+      console.error("Error parsing filters: ", req.body.filters);
+    }
     var item = {
       email,
       phone,
@@ -156,19 +162,22 @@ if (
 
     if (loginUser) {
       //Not sure if ID token should be stored client side
-      // res.status(409).end();
-      // return;
+      res.status(409).end();
+      return;
     }
     let newUser = null;
     try {
       newUser = await registerUser(email, password, phone);
-    } catch (e) {}
+    } catch (e) {
+      var returnStatus = 500;
+      res.status(returnStatus).end();
+      return;
+    }
 
     console.log(newUser);
-    if (newUser || true) {
-      //temporary override of user signup
+    if (newUser) {
       try {
-        console.log("inserting new user");
+        console.log("inserting new user ", item);
         const mongoInsert = await createNewUser(mongoClient, item);
         console.log(mongoInsert);
         res.send({

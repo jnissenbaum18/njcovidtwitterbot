@@ -116,6 +116,7 @@ async function findUserAndUpdate(
       userSearchParams
     );
   }
+  const { phone, emailEnabled, phoneEnabled, filters } = userUpdateParams;
   return mongoClient
     .db("covidBot")
     .collection("botUsers")
@@ -132,7 +133,12 @@ async function findUserAndUpdate(
       },
       {
         $set: {
-          ...userUpdateParams,
+          phone,
+          emailEnabled,
+          phoneEnabled,
+        },
+        $addToSet: {
+          filters,
         },
       },
       {
