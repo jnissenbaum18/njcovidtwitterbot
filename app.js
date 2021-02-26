@@ -234,9 +234,10 @@ if (
     console.log("account-update", req.body);
     const email = req.body.email;
     const emailEnabled = req.body.emailEnabled === "on";
-    const phone = req.body.phone;
+    const phone = formatPhoneNumber(req.body.phone);
     const phoneEnabled = req.body.phoneEnabled === "on";
     let filters = [];
+    console.log(phone);
     try {
       filters = JSON.parse(req.body.filters);
       console.log("filters ", filters);
