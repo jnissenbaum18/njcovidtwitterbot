@@ -236,7 +236,13 @@ if (
     const emailEnabled = req.body.emailEnabled === "on";
     const phone = req.body.phone;
     const phoneEnabled = req.body.phoneEnabled === "on";
-    const filters = JSON.parse(req.body.filters);
+    let filters = [];
+    try {
+      filters = JSON.parse(req.body.filters);
+      console.log("filters ", filters);
+    } catch (e) {
+      console.error("Error parsing filters: ", req.body.filters);
+    }
     const user = {
       emailEnabled,
       phone,

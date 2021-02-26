@@ -185,7 +185,7 @@
         </p>
         <p>
           To set your account preferences, please click the account link in the navbar. Email alerts
-          and SMS alerts can be turned off here.
+          and SMS alerts can be turned off there.
         </p>
         <p>
           If you are aware of more sources of appointment information or
@@ -481,10 +481,13 @@
                 class="alert alert-info"
                 style="display: none"
               >
-                <p id="accountUpdateSuccessText">
+                <p id="account-update-text">
                   Account data successfully updated
                 </p>
               </div>
+              <p id="account-update-loading" style="display:none;">
+                Loading...
+              </p>
               <button id="account-update" type="button" class="btn btn-primary">
                 Update
               </button>
@@ -746,12 +749,17 @@
         });
 
         $("#account-update").click(function () {
+          
           var data = $("#accountForm").serialize();
           data +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#account-filters").val()));
           data += "&idToken=" + encodeURIComponent(Cookies.get("idToken"));
+          $("#account-update-loading").show()
+          $("#account-update").hide()
           $.post("/account-update", data, function (data) {
+            $("#account-update-loading").hide()
+            $("#account-update").show()
             if (data && data.success) {
               $("#accountUpdateSuccess").show();
             }

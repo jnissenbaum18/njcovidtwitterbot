@@ -136,8 +136,6 @@ async function findUserAndUpdate(
           phone,
           emailEnabled,
           phoneEnabled,
-        },
-        $addToSet: {
           filters,
         },
       },
