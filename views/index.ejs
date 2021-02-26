@@ -104,7 +104,9 @@
         class="alert alert-danger"
         style="display: none"
       >
-        <p id="signupDuplicateText">Looks like you already have an account.</p>
+        <p id="signupDuplicateText">
+          Looks like you already have an account. Please login instead.
+        </p>
       </div>
       <div id="signupError" class="alert alert-danger" style="display: none">
         <p id="signupErrorText">
@@ -115,7 +117,7 @@
           >.
         </p>
       </div>
-      <div class="jumbotron">
+      <div id="landing-jumbotron" class="jumbotron">
         <h2>
           Get alerted when a Covid19 vaccination appointment becomes available
           in NY and NJ!
@@ -167,11 +169,40 @@
         </p>
         <p>
           <a
+            id="signup-today"
             class="btn btn-lg btn-success"
             data-toggle="modal"
             href="#signupModal"
             >Sign up today</a
           >
+        </p>
+      </div>
+      <div id="loggedin-jumbotron" class="jumbotron">
+        <h2>
+          You are logged in!
+        </h2>
+        <p class="lead">
+          Go to the New Jersey twitter account: <a href="https://twitter.com/C19VaxxUpdates">@C19VaxxUpdates</a> 
+          <br/>
+          Go to the New York twitter account: <a href="https://twitter.com/turbovax">@turbovax</a>
+        </p>
+        <p>
+          To set your account preferences, please click the account link in the navbar. Email alerts
+          and SMS alerts can be turned off here.
+        </p>
+        <p>
+          If you are aware of more sources of appointment information or
+          encounter problems with the website, please email
+          <a href="mailto:feedback@covidvaxalerts.com"
+            >feedback@covidvaxalerts.com</a
+          >
+          and we'll get to work on it!
+        </p>
+        <p>
+          Features that are being actively worked on:
+          <ul>
+            <li>SMS Messaging</li>
+          </ul>
         </p>
       </div>
 
@@ -210,6 +241,16 @@
               </button>
             </div>
             <div class="modal-body">
+              <div
+                id="signupValidationError"
+                class="alert alert-danger"
+                style="display: none"
+              >
+                <p id="signupValidationErrorText">
+                  We could not register you, please check that all required
+                  fields are filled in.
+                </p>
+              </div>
               <form id="signup-form" role="form">
                 <div class="form-group">
                   <label for="email"
@@ -219,7 +260,7 @@
                   <input
                     type="email"
                     class="form-control"
-                    id="signup-email"
+                    id="email"
                     name="email"
                     placeholder="Your email address"
                     required
@@ -307,7 +348,7 @@
                   <input
                     type="password"
                     class="form-control"
-                    id="signup-password"
+                    id="password"
                     name="password"
                     placeholder="Your password"
                     required
@@ -487,6 +528,15 @@
                   We could not log you in to your account
                 </p>
               </div>
+              <div
+                id="authError"
+                class="alert alert-danger"
+                style="display: none"
+              >
+                <p id="loginErrorText">
+                  Your password is incorrect, please try again
+                </p>
+              </div>
               <form id="loginForm" role="form">
                 <div class="form-group">
                   <label for="email">Email address</label>
@@ -561,20 +611,19 @@
 
           $("#signup-form").validate({
             rules: {
-              "signup-email": {
+              email: {
                 required: true,
-                minlength: 10,
               },
-              "signup-password": {
+              password: {
                 required: true,
                 minlength: 8,
               },
             },
             messages: {
-              "signup-email": {
-                required: "test",
+              email: {
+                required: "Please provide an email address",
               },
-              "signup-password": {
+              password: {
                 minlength: "Password must be at least 8 characters long",
               },
             },
@@ -589,6 +638,8 @@
               $("#nav-logout").show();
               $("#nav-register").hide();
               $("#nav-login").hide();
+              $("#landing-jumbotron").hide();
+              $("#loggedin-jumbotron").show();
             } else {
               $("#loginModal").modal("show");
             }
@@ -609,10 +660,15 @@
 
         $("#signup").click(function () {
           var signupData = $("#signup-form").serialize();
+          if (!$("#email").val()) {
+            $("#signupValidationError").show();
+          }
+          if (!$("#password").val()) {
+            $("#signupValidationError").show();
+          }
           signupData +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#signup-filters").val()));
-          console.log(signupData);
           $.post("/signup", signupData, function (data) {
             $("#loginModal").modal("hide");
             $("#signupSuccess").show();
@@ -645,12 +701,17 @@
               $("#nav-logout").show();
               $("#nav-register").hide();
               $("#nav-login").hide();
+              $("#signupSuccess").hide();
+              $("#signupDuplicate").hide();
+              $("#signupError").hide();
+              $("#landing-jumbotron").hide();
+              $("#loggedin-jumbotron").show();
             }
           }).error(function (xhr) {
             console.log(xhr.status);
             switch (xhr.status) {
               case 401:
-                $("#loginError").show();
+                $("#authError").show();
                 break;
               default:
                 $("#loginError").show();
@@ -668,6 +729,8 @@
           $("#nav-logout").hide();
           $("#nav-register").show();
           $("#nav-login").show();
+          $("#landing-jumbotron").show();
+          $("#loggedin-jumbotron").hide();
         });
 
         $("#account-update").click(function () {

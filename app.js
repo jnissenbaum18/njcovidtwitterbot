@@ -123,7 +123,11 @@ if (
         email: userData.email,
       });
     } catch (e) {
-      res.status(401).end();
+      if (e.code && e.message === "Incorrect username or password.") {
+        res.status(401).end();
+        return;
+      }
+      res.status(500).end();
     }
   });
 
@@ -155,21 +159,23 @@ if (
       phoneEnabled,
       filters,
     };
-    let loginUser = null;
+    /*     let loginUser = null;
     try {
       loginUser = await login(email, password);
-    } catch (e) {}
+    } catch (e) {
+
+    }
 
     if (loginUser) {
       //Not sure if ID token should be stored client side
       res.status(409).end();
       return;
-    }
+    } */
     let newUser = null;
     try {
       newUser = await registerUser(email, password, phone);
     } catch (e) {
-      var returnStatus = 500;
+      var returnStatus = 409;
       res.status(returnStatus).end();
       return;
     }
