@@ -68,9 +68,6 @@
                 >
               </li>
             </ul>
-            <span id="nav-is-logged-in" class="navbar-text">
-              Not logged in
-            </span>
             <ul class="navbar-nav">
               <li class="nav-item">
                 <a
@@ -179,7 +176,7 @@
       </div>
       <div id="loggedin-jumbotron" class="jumbotron">
         <h2>
-          You are logged in!
+          You are logged in <span id="is-logged-in"></span>
         </h2>
         <p class="lead">
           Go to the New Jersey twitter account: <a href="https://twitter.com/C19VaxxUpdates">@C19VaxxUpdates</a> 
@@ -637,8 +634,8 @@
 
           $.post("/validate-token", { idToken }, function (data) {
             if (data.isValid) {
-              $("#nav-is-logged-in")
-                .text("Logged in as: " + userEmail)
+              $("#is-logged-in")
+                .text("as: " + userEmail)
                 .show();
               $("#nav-account").show();
               $("#nav-logout").show();
@@ -708,8 +705,8 @@
               Cookies.set("idToken", data.idToken);
               Cookies.set("userEmail", data.email);
               $("#loginModal").modal("hide");
-              $("#nav-is-logged-in")
-                .text("Logged in as: " + data.email)
+              $("#is-logged-in")
+                .text("as: " + data.email)
                 .show();
               $("#nav-account").show();
               $("#nav-logout").show();
@@ -740,7 +737,6 @@
           Cookies.remove("refreshToken");
           Cookies.remove("idToken");
           Cookies.remove("userEmail");
-          $("#nav-is-logged-in").hide();
           $("#nav-account").hide();
           $("#nav-logout").hide();
           $("#nav-register").show();
