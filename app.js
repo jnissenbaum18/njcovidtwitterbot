@@ -376,7 +376,11 @@ if (
     console.log(req.body);
     const twiml = new MessagingResponse();
     const { Body, To } = req.body;
-    if (Body && Body.toLowerCase().includes("stop")) {
+    if (
+      Body &&
+      (Body.toLowerCase().includes("stop") ||
+        Body.toLowerCase().includes("unsubscribe"))
+    ) {
       await findUserAndUpdate(
         mongoClient,
         { phone: To },
