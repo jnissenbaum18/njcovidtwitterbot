@@ -3,6 +3,10 @@ const { searchMessageForFilters } = require("./utils");
 const { findUsersForFilters, findUserAndUpdate } = require("./mongo");
 const sgMail = require("@sendgrid/mail");
 
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioClient = require("twilio")(accountSid, authToken);
+
 // Set the region
 AWS.config.update({ region: process.env.REGION });
 
@@ -67,6 +71,16 @@ async function sendEmailSendGrid(emailAddress, emailBody, emailSubject) {
     .catch((error) => {
       console.error(error);
     });
+}
+
+async function sendSMSTwilio(messageBody, messagePhone) {
+  twilioClient.messages
+    .create({
+      body: messageBody,
+      from: "+13252372413",
+      to: messagePhone,
+    })
+    .then((message) => console.log(message.sid));
 }
 
 async function sendEmailSES(SES, emailAddress, emailBody, emailSubject) {
@@ -158,14 +172,24 @@ async function sendMessages(SNS, mongoClient, text) {
           "COVID Twitter Alert"
         );
       }
-      if (user.phoneEnabled) {
-        //console.log("Sending message to phone: ", user.phone);
-        //sendSMS(SNS, user.phone, text);
+      if (user.phoneEnabled && user.phone === "+19083800715") {
+        console.log("Sending message to phone: ", user.phone);
+        sendSMSTwilio(createSMSBody(text), user.phone);
       }
     });
   } catch (e) {
     console.error("Send messages error: ", e);
   }
+}
+
+function createSMSBody(smsBody) {
+  return `
+  Covid Alert Message:
+
+  ${smsBody}
+
+  Text STOP to unsubscribe from SMS messaging
+  `;
 }
 
 function createEmailBody(emailBody, user) {

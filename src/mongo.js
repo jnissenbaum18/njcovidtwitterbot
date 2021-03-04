@@ -110,7 +110,7 @@ async function findUserAndUpdate(
   }
   const { email, userId } = userSearchParams;
   console.log(userSearchParams, userUpdateParams);
-  if (!email && !userId) {
+  if (!email && !userId && !userSearchParams.phone) {
     throw new Error(
       "Cannot update user, email and userId are not defined ",
       userSearchParams
@@ -128,6 +128,9 @@ async function findUserAndUpdate(
           },
           {
             userId,
+          },
+          {
+            phone,
           },
         ],
       },
@@ -151,7 +154,7 @@ async function findUsersForFilters(mongoClient, filters) {
     .db("covidBot")
     .collection("botUsers")
     .find({
-      filters: { $in: [...filters, "All"] },
+      filters: { $in: [...filters] },
     })
     .toArray()
     .catch((error) => console.error(error));

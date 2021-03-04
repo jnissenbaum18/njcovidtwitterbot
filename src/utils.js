@@ -9,7 +9,13 @@ function formatPhoneNumber(phoneNumberString) {
 }
 
 function searchMessageForFilters(filters, string) {
-  return filters.filter((filter) => string.includes(filter.toLowerCase()));
+  if (string.includes("Covid app test")) {
+    return ["Cat"];
+  }
+  return [
+    ...filters.filter((filter) => string.includes(filter.toLowerCase())),
+    "All",
+  ];
 }
 
 module.exports = {

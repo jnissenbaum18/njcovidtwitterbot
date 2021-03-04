@@ -16,6 +16,7 @@ const {
   findUsersForFilters,
 } = require("./src/mongo");
 const { inspect } = require("util");
+const MessagingResponse = require("twilio").twiml.MessagingResponse;
 
 // Include the cluster module
 var cluster = require("cluster");
@@ -325,7 +326,7 @@ if (
        */
       // return;
 
-      sendMessages(SNS, mongoClient, "Cat test");
+      sendMessages(SNS, mongoClient, "Covid app test");
       // const emailStatus = sendEmails(
       //   SES,
       //   ["jnissenbaum18@gmail.com"],
@@ -371,6 +372,32 @@ if (
     }
   });
 
+  app.post("/sms", async function (req, res) {
+    console.log(req.body);
+    const twiml = new MessagingResponse();
+    const { Body, To } = req.body;
+    if (Body && Body.toLowerCase().includes("stop")) {
+      await findUserAndUpdate(
+        mongoClient,
+        { phone: To },
+        {
+          phoneEnabled: false,
+          lastMessage: Body,
+        }
+      );
+
+      twiml.message("You have successfully unsubscribed from our SMS service");
+
+      res.writeHead(200, { "Content-Type": "text/xml" });
+      res.end(twiml.toString());
+      return;
+    }
+    twiml.message("Message received");
+
+    res.writeHead(200, { "Content-Type": "text/xml" });
+    res.end(twiml.toString());
+  });
+
   var port = process.env.PORT || 3000;
 
   var server = app.listen(port, async function () {
@@ -379,7 +406,7 @@ if (
         mongoClient = await connectToClient();
         if (process.env.ENVIRONMENT && process.env.ENVIRONMENT === "DEV") {
         } else {
-          await SNSInit(SNS);
+          // await SNSInit(SNS);
           await streamInit(mongoClient, SES, SNS);
         }
       });

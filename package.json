@@ -15,7 +15,8 @@
     "mongodb": "^3.6.4",
     "needle": "^2.6.0",
     "node-fetch": "^2.6.1",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "twilio": "^3.57.0"
   },
   "scripts": {
     "start": "nodemon app.js",
