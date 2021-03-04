@@ -172,7 +172,7 @@ async function sendMessages(SNS, mongoClient, text) {
           "COVID Twitter Alert"
         );
       }
-      if (user.phoneEnabled && user.phone === "+19083800715") {
+      if (user.phoneEnabled) {
         console.log("Sending message to phone: ", user.phone);
         sendSMSTwilio(createSMSBody(text), user.phone);
       }

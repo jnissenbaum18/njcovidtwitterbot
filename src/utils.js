@@ -9,7 +9,8 @@ function formatPhoneNumber(phoneNumberString) {
 }
 
 function searchMessageForFilters(filters, string) {
-  if (string.includes("Covid app test")) {
+  console.log(string);
+  if (string.includes("covid app test")) {
     return ["Cat"];
   }
   return [
