@@ -174,18 +174,18 @@
           >
         </p>
       </div>
-      <div id="loggedin-jumbotron" class="jumbotron" style="display:none;">
-        <h2>
-          You are logged in <span id="is-logged-in"></span>
-        </h2>
+      <div id="loggedin-jumbotron" class="jumbotron" style="display: none">
+        <h2>You are logged in <span id="is-logged-in"></span></h2>
         <p class="lead">
-          Go to the New Jersey twitter account: <a href="https://twitter.com/C19VaxxUpdates">@C19VaxxUpdates</a> 
-          <br/>
-          Go to the New York twitter account: <a href="https://twitter.com/turbovax">@turbovax</a>
+          Go to the New Jersey twitter account:
+          <a href="https://twitter.com/C19VaxxUpdates">@C19VaxxUpdates</a>
+          <br />
+          Go to the New York twitter account:
+          <a href="https://twitter.com/turbovax">@turbovax</a>
         </p>
         <p>
-          To set your account preferences, please click the account link in the navbar. Email alerts
-          and SMS alerts can be turned off there.
+          To set your account preferences, please click the account link in the
+          navbar. Email alerts and SMS alerts can be turned off there.
         </p>
         <p>
           If you are aware of more sources of appointment information or
@@ -195,12 +195,7 @@
           >
           and we'll get to work on it!
         </p>
-        <p>
-          Features that are being actively worked on:
-          <ul>
-            <li>SMS Messaging</li>
-          </ul>
-        </p>
+        <p>Features that are being actively worked on:</p>
       </div>
 
       <div class="footer">
@@ -294,7 +289,7 @@
                     name="phoneEnabled"
                   />
                   <label for="phone-enabled" class="form-check-label"
-                    >Check to receive alerts by text message (In Development)</label
+                    >Check to receive alerts by text message</label
                   >
                 </div>
                 <label for="signup-filters" class="form-check-label"
@@ -308,7 +303,7 @@
                   multiple
                   data-live-search="true"
                   required
-                > 
+                >
                   <option value="Atlantic">Atlantic</option>
                   <option value="Bergen">Bergen</option>
                   <option value="Burlington">Burlington</option>
@@ -355,7 +350,7 @@
               </form>
             </div>
             <div class="modal-footer">
-              <span id="signup-loading" style="display:none;">
+              <span id="signup-loading" style="display: none">
                 Loading...
               </span>
               <button id="signup" type="button" class="btn btn-primary">
@@ -432,7 +427,7 @@
                     name="phoneEnabled"
                   />
                   <label for="phone-enabled" class="form-check-label"
-                    >Check to receive alerts by text message (In Development)</label
+                    >Check to receive alerts by text message</label
                   >
                 </div>
                 <label for="account-filters" class="form-check-label"
@@ -485,7 +480,7 @@
                   Account data successfully updated
                 </p>
               </div>
-              <p id="account-update-loading" style="display:none;">
+              <p id="account-update-loading" style="display: none">
                 Loading...
               </p>
               <button id="account-update" type="button" class="btn btn-primary">
@@ -567,9 +562,7 @@
               <button id="login" type="button" class="btn btn-primary">
                 Login
               </button>
-              <span id="login-loading" style="display:none;">
-                Loading...
-              </span>
+              <span id="login-loading" style="display: none"> Loading... </span>
               <button id="loginToSignup" type="button" class="btn btn-info">
                 Signup
               </button>
@@ -675,15 +668,15 @@
           signupData +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#signup-filters").val()));
-            $("#signup").hide()
-            $("#signup-loading").show()
+          $("#signup").hide();
+          $("#signup-loading").show();
           $.post("/signup", signupData, function (data) {
             $("#loginModal").modal("hide");
             $("#signupSuccess").show();
           })
             .error(function (xhr) {
-              $("#signup").show()
-              $("#signup-loading").hide()
+              $("#signup").show();
+              $("#signup-loading").hide();
               switch (xhr.status) {
                 case 409:
                   $("#signupDuplicate").show();
@@ -697,11 +690,11 @@
             });
         });
         $("#login").click(function () {
-          $("#login").hide()
-          $("#login-loading").show()
+          $("#login").hide();
+          $("#login-loading").show();
           $.post("/login", $("#loginForm").serialize(), function (data) {
-            $("#login").show()
-            $("#login-loading").hide()
+            $("#login").show();
+            $("#login-loading").hide();
             if (data.idToken && data.accessToken && data.refreshToken) {
               Cookies.set("accessToken", data.accessToken);
               Cookies.set("refreshToken", data.refreshToken);
@@ -722,8 +715,8 @@
               $("#loggedin-jumbotron").show();
             }
           }).error(function (xhr) {
-            $("#login").show()
-            $("#login-loading").hide()
+            $("#login").show();
+            $("#login-loading").hide();
             console.log(xhr.status);
             switch (xhr.status) {
               case 401:
@@ -749,17 +742,16 @@
         });
 
         $("#account-update").click(function () {
-          
           var data = $("#accountForm").serialize();
           data +=
             "&filters=" +
             encodeURIComponent(JSON.stringify($("#account-filters").val()));
           data += "&idToken=" + encodeURIComponent(Cookies.get("idToken"));
-          $("#account-update-loading").show()
-          $("#account-update").hide()
+          $("#account-update-loading").show();
+          $("#account-update").hide();
           $.post("/account-update", data, function (data) {
-            $("#account-update-loading").hide()
-            $("#account-update").show()
+            $("#account-update-loading").hide();
+            $("#account-update").show();
             if (data && data.success) {
               $("#accountUpdateSuccess").show();
             }
