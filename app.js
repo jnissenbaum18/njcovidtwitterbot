@@ -238,7 +238,6 @@ if (
     const phone = formatPhoneNumber(req.body.phone);
     const phoneEnabled = req.body.phoneEnabled === "on";
     let filters = [];
-    console.log(phone);
     try {
       filters = JSON.parse(req.body.filters);
       console.log("filters ", filters);
@@ -256,10 +255,10 @@ if (
     console.log("valid token ", !!validToken);
     if (validToken) {
       try {
-        console.log("user ", user);
+        console.log("user ", user, validToken.email);
         const userData = await findUserAndUpdate(
           mongoClient,
-          { email: validToken.email },
+          { email: validToken.email, userId: null, phone },
           user
         );
         console.log("userData ", userData);

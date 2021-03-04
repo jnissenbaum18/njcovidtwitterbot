@@ -116,31 +116,50 @@ async function findUserAndUpdate(
       userSearchParams
     );
   }
+
+  const searchParams = [];
+  if (email) {
+    searchParams.push({
+      email,
+    });
+  }
+  if (userUpdateParams.phone) {
+    searchParams.push({
+      phone: userUpdateParams.phone,
+    });
+  }
+  if (userId) {
+    searchParams.push({
+      userId,
+    });
+  }
+
+  console.log("searchParams ", searchParams);
   const { phone, emailEnabled, phoneEnabled, filters } = userUpdateParams;
+
+  const updateParams = {};
+  if (phone) {
+    updateParams["phone"] = phone;
+  }
+  if (emailEnabled || emailEnabled === false) {
+    updateParams["emailEnabled"] = emailEnabled;
+  }
+  if (phoneEnabled || phoneEnabled === false) {
+    updateParams["phoneEnabled"] = phoneEnabled;
+  }
+  if (filters) {
+    updateParams["filters"] = filters;
+  }
+  console.log("updateParams ", updateParams);
   return mongoClient
     .db("covidBot")
     .collection("botUsers")
     .findOneAndUpdate(
       {
-        $or: [
-          {
-            email,
-          },
-          {
-            userId,
-          },
-          {
-            phone,
-          },
-        ],
+        $or: searchParams,
       },
       {
-        $set: {
-          phone,
-          emailEnabled,
-          phoneEnabled,
-          filters,
-        },
+        $set: updateParams,
       },
       {
         returnNewDocument: true,
