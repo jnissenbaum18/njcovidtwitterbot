@@ -10,6 +10,7 @@ const token = process.env.TWITTER_API_BEARER_TOKEN;
 // Edit rules as desired here below
 const rules = [
   { value: "from:C19VaxxUpdates -is:reply", tag: "nj updates" },
+  { value: "from:nj_vaccine -is:reply", tag: "nj updates 2" },
   { value: "from:turbovax -is:reply", tag: "ny updates" },
   // { value: "dog has:images -is:retweet", tag: "dog pictures" },
   // { value: "cat has:images -grumpy", tag: "cat pictures" },
