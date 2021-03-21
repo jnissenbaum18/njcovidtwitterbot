@@ -125,8 +125,8 @@ function streamConnect(mongoClient, SES, SNS) {
     })
     .on("error", (error) => {
       console.log("error ", error);
+      stream.emit("timeout");
       if (error.code === "ETIMEDOUT") {
-        stream.emit("timeout");
       }
     });
 
