@@ -95,6 +95,7 @@ function streamConnect(mongoClient, SES, SNS) {
 
   stream
     .on("data", async (data) => {
+      throw Error("test");
       try {
         if (data.status === 401) {
           console.error("Stream unauthorized ", data);
@@ -123,6 +124,7 @@ function streamConnect(mongoClient, SES, SNS) {
       }
     })
     .on("error", (error) => {
+      console.log("error ", error);
       if (error.code === "ETIMEDOUT") {
         stream.emit("timeout");
       }
@@ -132,6 +134,7 @@ function streamConnect(mongoClient, SES, SNS) {
 }
 
 let filteredStream = null;
+let timeout = 0;
 
 async function streamInit(mongoClient, SES, SNS) {
   console.log("Initiating stream");
@@ -157,15 +160,15 @@ async function streamInit(mongoClient, SES, SNS) {
   if (!filteredStream) {
     filteredStream = streamConnect(mongoClient, SES, SNS);
   }
-  let timeout = 0;
   filteredStream.on("timeout", () => {
     // Reconnect on error
-    console.warn("A connection error occurred. Reconnecting…");
+    console.warn(
+      `A connection error occurred. Reconnecting after timeout: ${timeout}…`
+    );
     setTimeout(() => {
       timeout++;
       streamConnect(mongoClient, SES, SNS);
     }, 2 ** timeout);
-    streamConnect(mongoClient, SES, SNS);
   });
 }
 
