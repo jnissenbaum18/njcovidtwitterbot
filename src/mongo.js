@@ -128,6 +128,11 @@ async function findUserAndUpdate(
       phone: userUpdateParams.phone,
     });
   }
+  if (!userUpdateParams.phone && userSearchParams.phone) {
+    searchParams.push({
+      phone: userSearchParams.phone,
+    });
+  }
   if (userId) {
     searchParams.push({
       userId,

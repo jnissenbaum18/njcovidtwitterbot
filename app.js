@@ -374,7 +374,7 @@ if (
   app.post("/sms", async function (req, res) {
     console.log(req.body);
     const twiml = new MessagingResponse();
-    const { Body, To } = req.body;
+    const { Body, From } = req.body;
     if (
       Body &&
       (Body.toLowerCase().includes("stop") ||
@@ -382,7 +382,7 @@ if (
     ) {
       await findUserAndUpdate(
         mongoClient,
-        { phone: To },
+        { phone: From },
         {
           phoneEnabled: false,
           lastMessage: Body,
