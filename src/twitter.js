@@ -77,89 +77,88 @@ async function setRules() {
   return response.body;
 }
 
-function streamConnect(mongoClient, SES, SNS) {
+async function streamConnect(mongoClient, SES, SNS) {
   //Listen to the stream
-  const options = {
-    timeout: 20000,
-  };
-
-  const stream = needle.get(
-    streamURL,
-    {
+  try {
+    let connectionIssue = null;
+    const stream = await needle.get(streamURL, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    },
-    options
-  );
-
-  stream
-    .on("data", async (data) => {
-      throw Error("test");
-      try {
-        if (data.status === 401) {
-          console.error("Stream unauthorized ", data);
-          return;
-        }
-        if (
-          data.connection_issue &&
-          data.connection_issue === "TooManyConnections"
-        ) {
-          console.log("Stream refused to connect, too many connections");
-          stream.emit("timeout");
-          return;
-        }
-        const json = JSON.parse(data);
-        console.log(json);
-        const text = json.data.text;
-        sendMessages(SNS, mongoClient, text);
-      } catch (e) {
-        const errMsg = String(e.message);
-        if (errMsg.includes("Unexpected end of JSON input")) {
-          console.log("No new messages, continue...");
-        } else {
-          console.error(e);
-        }
-        // Keep alive signal received. Do nothing.
-      }
-    })
-    .on("error", (error) => {
-      console.log("error ", error);
-      stream.emit("timeout");
-      if (error.code === "ETIMEDOUT") {
-      }
+      timeout: 20000,
     });
 
-  return stream;
+    stream
+      .on("data", async (data) => {
+        try {
+          if (data.status === 401) {
+            console.error("Stream unauthorized ", data);
+            return;
+          }
+          if (
+            data.connection_issue &&
+            data.connection_issue === "TooManyConnections"
+          ) {
+            console.log("Stream refused to connect, too many connections");
+            stream.emit("timeout");
+            return;
+          }
+          const json = JSON.parse(data);
+          console.log(json);
+          const text = json.data.text;
+          sendMessages(SNS, mongoClient, text);
+        } catch (e) {
+          const errMsg = String(e.message);
+          if (errMsg.includes("Unexpected end of JSON input")) {
+            console.log("No new messages, continue...");
+          } else {
+            console.error(e);
+          }
+          // Keep alive signal received. Do nothing.
+        }
+      })
+      .on("error", (error) => {
+        console.log("stream error: ", error);
+        if (error.code === "ETIMEDOUT") {
+          stream.emit("timeout");
+        }
+      });
+
+    return stream;
+  } catch (e) {
+    console.error("Could not initiate stream, error: ", e);
+  }
 }
 
 let filteredStream = null;
-let timeout = 0;
+let timeout = 10;
 
 async function streamInit(mongoClient, SES, SNS) {
-  console.log("Initiating stream");
+  console.log("Initiating stream ");
   let currentRules;
-  try {
-    // Gets the complete list of rules currently applied to the stream
-    currentRules = await getAllRules();
-
-    // Delete all rules. Comment the line below if you want to keep your existing rules.
-    await deleteAllRules(currentRules);
-
-    // Add rules to the stream. Comment the line below if you don't want to add new rules.
-    await setRules();
-  } catch (e) {
-    console.error(e);
-    // process.exit(-1);
-  }
 
   // Listen to the stream.
   // This reconnection logic will attempt to reconnect when a disconnection is detected.
   // To avoid rate limites, this logic implements exponential backoff, so the wait time
   // will increase if the client cannot reconnect to the stream.
   if (!filteredStream) {
-    filteredStream = streamConnect(mongoClient, SES, SNS);
+    try {
+      // Gets the complete list of rules currently applied to the stream
+      currentRules = await getAllRules();
+
+      // Delete all rules. Comment the line below if you want to keep your existing rules.
+      await deleteAllRules(currentRules);
+
+      // Add rules to the stream. Comment the line below if you don't want to add new rules.
+      await setRules();
+    } catch (e) {
+      console.error(e);
+      // process.exit(-1);
+    }
   }
+
+  filteredStream = await streamConnect(mongoClient, SES, SNS);
+
   filteredStream.on("timeout", () => {
     // Reconnect on error
     console.warn(
@@ -167,9 +166,10 @@ async function streamInit(mongoClient, SES, SNS) {
     );
     setTimeout(() => {
       timeout++;
-      streamConnect(mongoClient, SES, SNS);
+      streamInit(mongoClient, SES, SNS);
     }, 2 ** timeout);
   });
+  return filteredStream;
 }
 
 module.exports = {
