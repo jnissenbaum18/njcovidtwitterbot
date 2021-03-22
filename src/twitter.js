@@ -49,7 +49,7 @@ async function deleteAllRules(rules) {
       authorization: `Bearer ${token}`,
     },
   });
-
+  console.log("deleteRules response: ", response.statusCode, response.body);
   if (response.statusCode !== 200) {
     throw new Error(JSON.stringify(response.body));
     return null;
@@ -69,6 +69,7 @@ async function setRules() {
       authorization: `Bearer ${token}`,
     },
   });
+  console.log("setRules response: ", response.statusCode, response.body);
   if (response.statusCode !== 201) {
     throw new Error(JSON.stringify(response.body));
     return null;
@@ -147,10 +148,14 @@ async function streamInit(mongoClient, SES, SNS) {
       currentRules = await getAllRules();
 
       // Delete all rules. Comment the line below if you want to keep your existing rules.
-      await deleteAllRules(currentRules);
+      console.log("Deleting rules");
+      const rulesDeleted = await deleteAllRules(currentRules);
+      console.log("Rules deleted ", rulesDeleted);
 
       // Add rules to the stream. Comment the line below if you don't want to add new rules.
-      await setRules();
+      console.log("Set rules");
+      const rulesSet = await setRules();
+      console.log("Rules set: ", rulesSet);
     } catch (e) {
       console.error(e);
       // process.exit(-1);
