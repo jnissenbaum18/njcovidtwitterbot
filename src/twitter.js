@@ -81,12 +81,11 @@ async function setRules() {
 let streamTimeoutAlert = null;
 
 async function setTimeoutAlert(mongoClient, timeout) {
-  console.log("Clearing timeout alert: ", streamTimeoutAlert);
+  console.log("Reset timeout alert");
   clearTimeout(streamTimeoutAlert);
   streamTimeoutAlert = setTimeout(() => {
     sendStreamTimeoutAlert(mongoClient);
   }, timeout);
-  console.log("Set timeout alert: ", streamTimeoutAlert);
 }
 
 async function streamConnect(mongoClient, SES, SNS) {
