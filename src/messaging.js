@@ -182,6 +182,32 @@ async function sendMessages(SNS, mongoClient, text) {
   }
 }
 
+async function sendStreamTimeoutAlert(mongoClient) {
+  try {
+    const users = await findUsersForFilters(mongoClient, ["Debug"]);
+    const date = new Date();
+    console.log(
+      `Sending stream timeout alert at: ${date.toISOString()} to users: ${users}`
+    );
+    users.forEach((user) => {
+      if (user.emailEnabled) {
+        console.log(`Sending email to: ${user.email}`);
+        sendEmailSendGrid(
+          user.email,
+          `Stream timeout at ${date.toISOString()}`,
+          "COVID Timeout Alert"
+        );
+      }
+      if (user.phoneEnabled) {
+        console.log("Sending message to phone: ", user.phone);
+        sendSMSTwilio(`Stream timeout at ${date.toISOString()}`, user.phone);
+      }
+    });
+  } catch (e) {
+    console.error("Send messages error: ", e);
+  }
+}
+
 function createSMSBody(smsBody) {
   return `
   Covid Alert Message:
@@ -303,6 +329,7 @@ async function SNSInit(SNS) {
 
 module.exports = {
   sendMessages,
+  sendStreamTimeoutAlert,
   handleEmailResponse,
   SNSInit,
 };

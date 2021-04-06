@@ -1,6 +1,6 @@
 const needle = require("needle");
 const dotenv = require("dotenv").config();
-const { sendMessages } = require("./messaging");
+const { sendMessages, sendStreamTimeoutAlert } = require("./messaging");
 
 const rulesURL = "https://api.twitter.com/2/tweets/search/stream/rules";
 const streamURL = "https://api.twitter.com/2/tweets/search/stream";
@@ -78,6 +78,17 @@ async function setRules() {
   return response.body;
 }
 
+let streamTimeoutAlert = null;
+
+async function setTimeoutAlert(mongoClient, timeout) {
+  console.log("Clearing timeout alert: ", streamTimeoutAlert);
+  clearTimeout(streamTimeoutAlert);
+  streamTimeoutAlert = setTimeout(() => {
+    sendStreamTimeoutAlert(mongoClient);
+  }, timeout);
+  console.log("Set timeout alert: ", streamTimeoutAlert);
+}
+
 async function streamConnect(mongoClient, SES, SNS) {
   //Listen to the stream
   try {
@@ -105,13 +116,24 @@ async function streamConnect(mongoClient, SES, SNS) {
             return;
           }
           const json = JSON.parse(data);
-          console.log(json);
+          console.log("Twitter JSON data: ", json);
+          if (
+            json.errors &&
+            Array.isArray(json.errors) &&
+            json.errors.length > 0
+          ) {
+            console.log("Stream encountered errors: ", json.errors);
+            stream.emit("timeout");
+            return;
+          }
           const text = json.data.text;
           sendMessages(SNS, mongoClient, text);
+          setTimeoutAlert(mongoClient, 3600000);
         } catch (e) {
           const errMsg = String(e.message);
           if (errMsg.includes("Unexpected end of JSON input")) {
             console.log("No new messages, continue...");
+            setTimeoutAlert(mongoClient, 3600000);
           } else {
             console.error(e);
           }
